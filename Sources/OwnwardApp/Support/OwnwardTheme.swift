@@ -93,16 +93,25 @@ private struct OwnwardAppearanceModifier: ViewModifier {
 enum OwnwardAppearanceCoordinator {
     static func apply(_ choice: AppThemeChoice) {
         let appearance: NSAppearance?
+        let chromeColor: NSColor
         switch choice {
-        case .system: appearance = nil
-        case .paperLight: appearance = NSAppearance(named: .aqua)
-        case .paperDark: appearance = NSAppearance(named: .darkAqua)
+        case .system:
+            appearance = nil
+            chromeColor = .windowBackgroundColor
+        case .paperLight:
+            appearance = NSAppearance(named: .aqua)
+            chromeColor = NSColor(red: 240 / 255, green: 234 / 255, blue: 216 / 255, alpha: 1)
+        case .paperDark:
+            appearance = NSAppearance(named: .darkAqua)
+            chromeColor = NSColor(red: 29 / 255, green: 29 / 255, blue: 27 / 255, alpha: 1)
         }
 
         NSApp.appearance = appearance
         for window in NSApp.windows {
             window.appearance = appearance
             window.contentView?.appearance = appearance
+            window.titlebarAppearsTransparent = !choice.usesSystemAppearance
+            window.backgroundColor = chromeColor
         }
         OwnwardBrand.applyAppIcon(for: choice)
     }

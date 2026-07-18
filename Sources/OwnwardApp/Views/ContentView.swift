@@ -21,6 +21,9 @@ struct ContentView: View {
                 }
         }
         .navigationSplitViewStyle(.balanced)
+        .toolbarBackground(theme.surface, for: .windowToolbar)
+        .toolbarBackground(.visible, for: .windowToolbar)
+        .animation(.easeInOut(duration: 0.18), value: columnVisibility)
         .ownwardAppearance(theme)
         .onAppear { OwnwardAppearanceCoordinator.apply(model.themeChoice) }
         .onChange(of: model.themeChoice) { _, choice in

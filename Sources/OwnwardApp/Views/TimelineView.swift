@@ -267,6 +267,7 @@ private struct TimelineTaskBar: View {
     @State private var hoveredEdge: TimelineDragMode?
     @State private var translation: CGFloat = 0
     private let calendar = Calendar.current
+    private let resizeHandleWidth: CGFloat = 12
 
     private var dayDelta: Int {
         TimelineDragMath.dayDelta(
@@ -312,7 +313,7 @@ private struct TimelineTaskBar: View {
         .overlay(alignment: .trailing) { resizeHandle(.resizeEnd) }
         .offset(x: previewOffset)
         .contentShape(RoundedRectangle(cornerRadius: 6))
-        .highPriorityGesture(dragGesture(.move))
+        .highPriorityGesture(dragGesture)
         .onTapGesture { model.selectedTaskID = task.id }
         .contextMenu {
             Button("Shift One Day Earlier") { model.shiftTaskDates(task.id, byDays: -1) }
@@ -333,23 +334,24 @@ private struct TimelineTaskBar: View {
 
     private func resizeHandle(_ mode: TimelineDragMode) -> some View {
         Capsule()
-            .fill(theme.ink.opacity(editMode == mode || hoveredEdge == mode ? 0.5 : 0.001))
+            .fill(theme.ink.opacity(editMode == mode || hoveredEdge == mode ? 0.5 : 0.2))
             .frame(width: 9, height: 24)
             .contentShape(Rectangle())
-            .highPriorityGesture(dragGesture(mode))
             .onHover { inside in
                 hoveredEdge = inside ? mode : nil
                 if inside { NSCursor.resizeLeftRight.set() } else { NSCursor.arrow.set() }
             }
     }
 
-    private func dragGesture(_ mode: TimelineDragMode) -> some Gesture {
+    private var dragGesture: some Gesture {
         DragGesture(minimumDistance: 2)
             .onChanged { value in
+                let mode = editMode ?? dragMode(at: value.startLocation.x)
                 editMode = mode
                 translation = value.translation.width
             }
-            .onEnded { _ in
+            .onEnded { value in
+                let mode = editMode ?? dragMode(at: value.startLocation.x)
                 let delta = dayDelta
                 switch mode {
                 case .move:
@@ -366,6 +368,12 @@ private struct TimelineTaskBar: View {
                 editMode = nil
                 translation = 0
             }
+    }
+
+    private func dragMode(at horizontalPosition: CGFloat) -> TimelineDragMode {
+        if horizontalPosition <= resizeHandleWidth { return .resizeStart }
+        if horizontalPosition >= baseWidth - resizeHandleWidth { return .resizeEnd }
+        return .move
     }
 
     private var dateRange: String {

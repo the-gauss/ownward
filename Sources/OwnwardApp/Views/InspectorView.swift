@@ -11,6 +11,8 @@ struct InspectorView: View {
     @State private var showsAllChecklistItems = false
     @State private var isPickingReferenceSource = false
     @State private var isPickingReferenceTarget = false
+    @State private var checklistReferenceSource: MiniTaskID?
+    @FocusState private var focusedMiniTaskID: MiniTaskID?
     @Environment(\.ownwardTheme) private var theme
 
     init(model: AppModel, task: TaskItem) {
@@ -79,19 +81,37 @@ struct InspectorView: View {
                                     Image(systemName: mini.isCompleted ? "checkmark.circle.fill" : "circle")
                                         .foregroundStyle(mini.isCompleted ? OwnwardTheme.success : .secondary)
                                 }.buttonStyle(.plain)
-                                Text(mini.title)
+                                TextField("Checklist item", text: miniTaskTitleBinding(for: mini))
+                                    .textFieldStyle(.roundedBorder)
+                                    .controlSize(.small)
                                     .font(theme.uiFont(12))
                                     .strikethrough(mini.isCompleted, color: .secondary)
                                     .foregroundStyle(mini.isCompleted ? .secondary : .primary)
-                            }
-                            .padding(.leading, CGFloat(mini.depth * 14))
-                            .contextMenu {
-                                Menu("Reference completion with") {
-                                    ForEach(referenceCandidates(excluding: .miniTask(mini.id)), id: \.rawID) { target in
-                                        Button(targetLabel(target)) { model.addReference(from: .miniTask(mini.id), to: target) }
+                                    .focused($focusedMiniTaskID, equals: mini.id)
+                                    .onSubmit(save)
+                                    .frame(maxWidth: .infinity)
+                                Button {
+                                    checklistReferenceSource = mini.id
+                                } label: {
+                                    Image(systemName: "arrow.triangle.branch")
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.secondary)
+                                .accessibilityLabel("Reference checklist item")
+                                .help("Reference completion")
+                                .popover(isPresented: checklistReferenceBinding(for: mini.id), arrowEdge: .trailing) {
+                                    ReferenceTargetPicker(
+                                        title: "Reference Completion",
+                                        suggested: referenceSuggestions(for: .miniTask(mini.id)),
+                                        searchOptions: referenceCandidates(excluding: .miniTask(mini.id)),
+                                        label: targetLabel
+                                    ) { selected in
+                                        model.addReference(from: .miniTask(mini.id), to: selected)
+                                        checklistReferenceSource = nil
                                     }
                                 }
                             }
+                            .padding(.leading, CGFloat(mini.depth * 14))
                         }
                     }
                     if draft.miniTasks.count > 8 {
@@ -144,7 +164,8 @@ struct InspectorView: View {
                         .popover(isPresented: $isPickingReferenceSource, arrowEdge: .trailing) {
                             ReferenceTargetPicker(
                                 title: "Reference Source",
-                                options: currentTaskTargets,
+                                suggested: Array(currentTaskTargets.prefix(3)),
+                                searchOptions: currentTaskTargets,
                                 label: targetLabel
                             ) { selected in
                                 referenceSource = selected
@@ -163,7 +184,8 @@ struct InspectorView: View {
                         .popover(isPresented: $isPickingReferenceTarget, arrowEdge: .trailing) {
                             ReferenceTargetPicker(
                                 title: "Referenced Item",
-                                options: referenceCandidates(excluding: referenceSource),
+                                suggested: referenceSuggestions(for: referenceSource),
+                                searchOptions: referenceCandidates(excluding: referenceSource),
                                 label: targetLabel
                             ) { selected in
                                 referenceTarget = selected
@@ -230,14 +252,63 @@ struct InspectorView: View {
     }
 
     private func referenceCandidates(excluding source: CompletionTarget) -> [CompletionTarget] { allTargets.filter { $0 != source } }
+
+    private func referenceSuggestions(for source: CompletionTarget) -> [CompletionTarget] {
+        return referenceCandidates(excluding: source)
+            .compactMap { candidate -> (target: CompletionTarget, score: Int)? in
+                let score = ReferenceSuggestionRanker.score(
+                    sourceTitle: targetTitle(source),
+                    candidateTitle: targetTitle(candidate)
+                )
+                return score > 0 ? (candidate, score) : nil
+            }
+            .sorted { lhs, rhs in
+                lhs.score == rhs.score
+                    ? targetLabel(lhs.target).localizedStandardCompare(targetLabel(rhs.target)) == .orderedAscending
+                    : lhs.score > rhs.score
+            }
+            .prefix(3)
+            .map(\.target)
+    }
+
     private func targetLabel(_ target: CompletionTarget) -> String {
         switch target {
-        case .task(let id): return model.snapshot.task(id: id)?.title ?? "Unknown task"
+        case .task(let id):
+            guard let task = model.snapshot.task(id: id) else { return "Unknown task" }
+            return "\(boardName(for: task)) › \(task.title)"
         case .miniTask(let id):
             guard let mini = model.snapshot.miniTask(id: id),
                   let task = model.snapshot.task(id: mini.taskID) else { return "Unknown mini-task" }
-            return "\(task.title) › \(mini.title)"
+            return "\(boardName(for: task)) › \(task.title) › \(mini.title)"
         }
+    }
+
+    private func targetTitle(_ target: CompletionTarget) -> String {
+        switch target {
+        case .task(let id): return model.snapshot.task(id: id)?.title ?? ""
+        case .miniTask(let id): return model.snapshot.miniTask(id: id)?.title ?? ""
+        }
+    }
+
+    private func boardName(for task: TaskItem) -> String {
+        model.snapshot.boards.first(where: { $0.id == task.boardID })?.name ?? "Unknown board"
+    }
+
+    private func miniTaskTitleBinding(for mini: MiniTask) -> Binding<String> {
+        Binding(
+            get: { draft.miniTasks.first(where: { $0.id == mini.id })?.title ?? mini.title },
+            set: { title in
+                guard let index = draft.miniTasks.firstIndex(where: { $0.id == mini.id }) else { return }
+                draft.miniTasks[index].title = title
+            }
+        )
+    }
+
+    private func checklistReferenceBinding(for miniTaskID: MiniTaskID) -> Binding<Bool> {
+        Binding(
+            get: { checklistReferenceSource == miniTaskID },
+            set: { if !$0 { checklistReferenceSource = nil } }
+        )
     }
     private func toggle(_ mini: MiniTask) {
         model.toggleMiniTask(mini)
@@ -253,8 +324,10 @@ struct InspectorView: View {
         }
     }
     private func addMiniTask() {
-        let mini = MiniTask(taskID: draft.id, title: "New checklist item", order: draft.miniTasks.count, category: draft.miniTasks.last?.category)
+        let mini = MiniTask(taskID: draft.id, title: "", order: draft.miniTasks.count, category: draft.miniTasks.last?.category)
+        showsAllChecklistItems = true
         draft.miniTasks.append(mini)
+        DispatchQueue.main.async { focusedMiniTaskID = mini.id }
     }
     private func save() {
         if !hasDeadline { draft.deadlineStart = nil; draft.deadlineEnd = nil }
@@ -282,14 +355,15 @@ private struct CompactPickerLabel: View {
 
 private struct ReferenceTargetPicker: View {
     let title: String
-    let options: [CompletionTarget]
+    let suggested: [CompletionTarget]
+    let searchOptions: [CompletionTarget]
     let label: (CompletionTarget) -> String
     let onSelect: (CompletionTarget) -> Void
     @State private var searchText = ""
     @Environment(\.ownwardTheme) private var theme
 
-    private var filtered: [CompletionTarget] {
-        searchText.isEmpty ? options : options.filter { label($0).localizedCaseInsensitiveContains(searchText) }
+    private var searchResults: [CompletionTarget] {
+        searchOptions.filter { label($0).localizedCaseInsensitiveContains(searchText) }
     }
 
     var body: some View {
@@ -299,26 +373,52 @@ private struct ReferenceTargetPicker: View {
                 .textFieldStyle(.roundedBorder)
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 2) {
-                    ForEach(filtered, id: \.rawID) { target in
-                        Button {
-                            onSelect(target)
-                        } label: {
-                            Text(label(target))
+                    if searchText.isEmpty {
+                        if suggested.isEmpty {
+                            Text("No close matches. Search every board to find an item.")
                                 .font(theme.uiFont(11))
-                                .lineLimit(2)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 8)
+                                .foregroundStyle(.secondary)
                                 .padding(.vertical, 6)
-                                .contentShape(Rectangle())
+                        } else {
+                            Text("Suggested")
+                                .font(theme.uiFont(10, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 8)
+                                .padding(.top, 2)
+                            targetButtons(suggested)
                         }
-                        .buttonStyle(.plain)
+                    } else if searchResults.isEmpty {
+                        Text("No matching tasks or checklist items.")
+                            .font(theme.uiFont(11))
+                            .foregroundStyle(.secondary)
+                            .padding(.vertical, 6)
+                    } else {
+                        targetButtons(searchResults)
                     }
                 }
             }
         }
         .padding(12)
-        .frame(width: 300, height: 360)
+        .frame(width: 300, height: 220)
         .background(theme.isSystem ? Color.clear : theme.surface)
+    }
+
+    @ViewBuilder
+    private func targetButtons(_ targets: [CompletionTarget]) -> some View {
+        ForEach(targets, id: \.rawID) { target in
+            Button {
+                onSelect(target)
+            } label: {
+                Text(label(target))
+                    .font(theme.uiFont(11))
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 6)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
     }
 }
 
