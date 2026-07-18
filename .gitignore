@@ -2,5 +2,6 @@
 dist/
 .DS_Store
 design-qa-artifacts/
+.codex/
 __pycache__/
 *.pyc
