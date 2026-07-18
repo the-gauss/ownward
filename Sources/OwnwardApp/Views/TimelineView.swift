@@ -5,6 +5,7 @@ import OwnwardCore
 struct TimelineView: View {
     @Bindable var model: AppModel
     @State private var focusedDate: Date?
+    @State private var collapsedGroups: Set<String> = []
     @Environment(\.ownwardTheme) private var theme
     private let calendar = Calendar.current
     private let dayWidth: CGFloat = 34
@@ -28,7 +29,8 @@ struct TimelineView: View {
             return datedTasks.sorted(by: startDateOrder).map(TimelineRow.task)
         }
         return groups.flatMap { group in
-            [.group(group.title, group.tasks.count)] + group.tasks.map(TimelineRow.task)
+            let tasks = collapsedGroups.contains(group.id) ? [] : group.tasks.map(TimelineRow.task)
+            return [.group(group.title, group.tasks.count)] + tasks
         }
     }
 
@@ -107,15 +109,26 @@ struct TimelineView: View {
             ForEach(rows) { row in
                 switch row {
                 case .group(let title, let count):
-                    HStack(spacing: 6) {
-                        Image(systemName: "chevron.down").font(.caption2).foregroundStyle(.secondary)
-                        Text(title).font(theme.uiFont(10, weight: .semibold)).lineLimit(1)
-                        Spacer(minLength: 2)
-                        Text("\(count)").font(theme.metadataFont(9)).foregroundStyle(.secondary)
+                    Button {
+                        toggleGroup(title)
+                    } label: {
+                        HStack(spacing: 6) {
+                            Image(systemName: collapsedGroups.contains(title) ? "chevron.right" : "chevron.down")
+                                .font(theme.uiFont(8.5, weight: .semibold))
+                                .foregroundStyle(.secondary)
+                                .frame(width: 10)
+                            Text(title).font(theme.uiFont(10, weight: .semibold)).lineLimit(1)
+                            Spacer(minLength: 2)
+                            Text("\(count)").font(theme.metadataFont(9)).foregroundStyle(.secondary)
+                        }
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                     .padding(.horizontal, 8)
                     .frame(width: labelWidth, height: groupHeight)
                     .background(theme.ink.opacity(0.075))
+                    .accessibilityLabel("\(title), \(count) tasks")
+                    .accessibilityValue(collapsedGroups.contains(title) ? "Collapsed" : "Expanded")
                 case .task(let task):
                     Button { model.selectedTaskID = task.id } label: {
                         VStack(alignment: .leading, spacing: 3) {
@@ -249,6 +262,11 @@ struct TimelineView: View {
     private func startDateOrder(_ lhs: TaskItem, _ rhs: TaskItem) -> Bool {
         (lhs.deadlineStart ?? lhs.deadlineEnd ?? .distantFuture) < (rhs.deadlineStart ?? rhs.deadlineEnd ?? .distantFuture)
     }
+
+    private func toggleGroup(_ id: String) {
+        if collapsedGroups.contains(id) { collapsedGroups.remove(id) }
+        else { collapsedGroups.insert(id) }
+    }
 }
 
 private struct TimelineTaskBar: View {
@@ -265,6 +283,7 @@ private struct TimelineTaskBar: View {
     @Environment(\.ownwardTheme) private var theme
     @State private var editMode: TimelineDragMode?
     @State private var hoveredEdge: TimelineDragMode?
+    @State private var isMoveHovered = false
     @State private var translation: CGFloat = 0
     private let calendar = Calendar.current
     private let resizeHandleWidth: CGFloat = 12
@@ -309,11 +328,22 @@ private struct TimelineTaskBar: View {
         }
         .frame(width: max(dayWidth - 8, previewWidth), height: 30)
         .overlay { RoundedRectangle(cornerRadius: 6).stroke(color.opacity(0.55)) }
-        .overlay(alignment: .leading) { resizeHandle(.resizeStart) }
-        .overlay(alignment: .trailing) { resizeHandle(.resizeEnd) }
+        .overlay {
+            HStack(spacing: 0) {
+                resizeHandle(.resizeStart)
+                Rectangle()
+                    .fill(.clear)
+                    .contentShape(Rectangle())
+                    .highPriorityGesture(dragGesture(for: .move))
+                    .onHover { inside in
+                        isMoveHovered = inside
+                        if editMode == nil { inside ? NSCursor.openHand.set() : NSCursor.arrow.set() }
+                    }
+                resizeHandle(.resizeEnd)
+            }
+        }
         .offset(x: previewOffset)
         .contentShape(RoundedRectangle(cornerRadius: 6))
-        .highPriorityGesture(dragGesture)
         .onTapGesture { model.selectedTaskID = task.id }
         .contextMenu {
             Button("Shift One Day Earlier") { model.shiftTaskDates(task.id, byDays: -1) }
@@ -335,24 +365,34 @@ private struct TimelineTaskBar: View {
     private func resizeHandle(_ mode: TimelineDragMode) -> some View {
         Capsule()
             .fill(theme.ink.opacity(editMode == mode || hoveredEdge == mode ? 0.5 : 0.2))
-            .frame(width: 9, height: 24)
+            .frame(width: resizeHandleWidth, height: 30)
+            .overlay {
+                Capsule()
+                    .fill(theme.ink.opacity(editMode == mode || hoveredEdge == mode ? 0.5 : 0.22))
+                    .frame(width: 5, height: 22)
+            }
             .contentShape(Rectangle())
+            .highPriorityGesture(dragGesture(for: mode))
             .onHover { inside in
                 hoveredEdge = inside ? mode : nil
                 if inside { NSCursor.resizeLeftRight.set() } else { NSCursor.arrow.set() }
             }
     }
 
-    private var dragGesture: some Gesture {
+    private func dragGesture(for mode: TimelineDragMode) -> some Gesture {
         DragGesture(minimumDistance: 2)
             .onChanged { value in
-                let mode = editMode ?? dragMode(at: value.startLocation.x)
                 editMode = mode
                 translation = value.translation.width
+                mode == .move ? NSCursor.closedHand.set() : NSCursor.resizeLeftRight.set()
             }
             .onEnded { value in
-                let mode = editMode ?? dragMode(at: value.startLocation.x)
-                let delta = dayDelta
+                let delta = TimelineDragMath.dayDelta(
+                    translation: Double(value.translation.width),
+                    dayWidth: Double(dayWidth),
+                    operation: mode.operation,
+                    spanDays: spanDays
+                )
                 switch mode {
                 case .move:
                     model.shiftTaskDates(task.id, byDays: delta)
@@ -367,13 +407,10 @@ private struct TimelineTaskBar: View {
                 }
                 editMode = nil
                 translation = 0
+                if mode == .move, isMoveHovered { NSCursor.openHand.set() }
+                else if hoveredEdge == mode { NSCursor.resizeLeftRight.set() }
+                else { NSCursor.arrow.set() }
             }
-    }
-
-    private func dragMode(at horizontalPosition: CGFloat) -> TimelineDragMode {
-        if horizontalPosition <= resizeHandleWidth { return .resizeStart }
-        if horizontalPosition >= baseWidth - resizeHandleWidth { return .resizeEnd }
-        return .move
     }
 
     private var dateRange: String {

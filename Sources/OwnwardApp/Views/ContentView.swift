@@ -11,12 +11,30 @@ struct ContentView: View {
             SidebarView(model: model)
                 .navigationSplitViewColumnWidth(min: 190, ideal: 250, max: 310)
         } detail: {
-            MainContentView(model: model)
-                .inspector(isPresented: inspectorBinding) {
-                    if let task = model.selectedTask {
+            ZStack {
+                if !theme.isSystem {
+                    theme.surface.ignoresSafeArea()
+                }
+                Group {
+                    switch model.workspaceMode {
+                    case .projectManagement:
+                        MainContentView(model: model)
+                            .environment(\.ownwardTheme, theme.scalingFonts(by: model.zoomScale))
+                    case .jobSearch:
+                        JobSearchView(model: model)
+                    }
+                }
+            }
+            .inspector(isPresented: inspectorBinding) {
+                    if model.workspaceMode == .projectManagement, let task = model.selectedTask {
                         InspectorView(model: model, task: task)
                             .id(task.id)
+                            .environment(\.ownwardTheme, theme.scalingFonts(by: model.zoomScale))
                             .inspectorColumnWidth(min: 280, ideal: 320, max: 430)
+                    } else if model.workspaceMode == .jobSearch, let role = model.selectedJobRole {
+                        JobRoleInspectorView(model: model, role: role)
+                            .id(role.id)
+                            .inspectorColumnWidth(min: 300, ideal: 340, max: 440)
                     }
                 }
         }
@@ -31,9 +49,16 @@ struct ContentView: View {
         }
         .onChange(of: model.sidebarSelection) { _, selection in
             model.selectedTaskID = nil
+            model.resetTaskFilters()
             if case .saved = selection { model.viewMode = .table }
         }
-        .alert("Ownward API", isPresented: Binding(get: { model.apiError != nil }, set: { if !$0 { model.apiError = nil } })) {
+        .onChange(of: model.jobSearchScope) { _, _ in
+            if let selected = model.selectedJobRoleID,
+               !model.visibleJobRoles.contains(where: { $0.id == selected }) {
+                model.selectedJobRoleID = nil
+            }
+        }
+        .alert("Ownward", isPresented: Binding(get: { model.apiError != nil }, set: { if !$0 { model.apiError = nil } })) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(model.apiError ?? "")
@@ -42,8 +67,19 @@ struct ContentView: View {
 
     private var inspectorBinding: Binding<Bool> {
         Binding(
-            get: { model.selectedTaskID != nil },
-            set: { if !$0 { model.selectedTaskID = nil } }
+            get: {
+                switch model.workspaceMode {
+                case .projectManagement: model.selectedTaskID != nil
+                case .jobSearch: model.selectedJobRoleID != nil
+                }
+            },
+            set: { presented in
+                guard !presented else { return }
+                switch model.workspaceMode {
+                case .projectManagement: model.selectedTaskID = nil
+                case .jobSearch: model.selectedJobRoleID = nil
+                }
+            }
         )
     }
 }

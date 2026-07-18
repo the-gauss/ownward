@@ -1,9 +1,12 @@
 # Ownward
 
-Ownward is a native macOS project and task manager built to replace the Minkops
-and Myndral Notion Kanbans without becoming a general-purpose Notion clone.
+Ownward is a native macOS workspace with two focused modes:
 
-The initial app includes:
+- **Project Management** replaces the Minkops and Myndral Notion Kanbans.
+- **Job Search** is the durable system of record for scheduled role research,
+  application tracking, contacts, evidence, and follow-ups.
+
+Project Management includes:
 
 - A full-height, collapsible macOS source sidebar.
 - Kanban, table, and timeline views in the main pane.
@@ -21,6 +24,22 @@ The initial app includes:
 - A bearer-protected loopback API and dependency-free MCP bridge for Codex and ChatGPT.
 - A dedicated Daily Day Starter context endpoint/tool.
 - Locked-screen API readiness after the first login following a reboot, so auto-wake schedules do not depend on a visible window.
+
+Job Search includes:
+
+- A responsive opportunity list that progressively reveals columns as the
+  window grows, with native search, track filters, sorting, and focused smart views.
+- A selection-driven inspector for application state, posting details, public
+  contacts, outreach guidance, evidence, linked project tasks, and immutable activity history.
+- A single **Show Resume in Finder** action that resolves the role's recorded
+  `.tex` baseline, opens its containing folder, and selects the exact source;
+  resume writing, compilation, and fit scoring intentionally stay outside the app.
+- An editable native form for user-owned status, dates, notes, contacts, and
+  research data.
+- Idempotent job-role upserts that refresh research evidence without overwriting
+  application history or advanced pipeline state.
+- A complete loopback API and five MCP tools used by the Weekly Canada Roles
+  Search, so the schedule no longer depends on JSON, Notion, or conversational memory.
 
 ## Run
 

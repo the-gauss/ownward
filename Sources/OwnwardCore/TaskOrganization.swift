@@ -28,6 +28,61 @@ public enum TaskGrouping: String, Codable, CaseIterable, Sendable {
     }
 }
 
+public enum TaskDateFilter: String, CaseIterable, Identifiable, Sendable {
+    case all
+    case overdue
+    case dueToday = "due_today"
+    case scheduled
+    case unscheduled
+
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .all: "Any Date"
+        case .overdue: "Overdue"
+        case .dueToday: "Due Today"
+        case .scheduled: "Has Dates"
+        case .unscheduled: "No Dates"
+        }
+    }
+}
+
+public enum TaskTeamFilter: Equatable, Sendable {
+    case all
+    case named(String)
+    case unassigned
+
+    public var title: String {
+        switch self {
+        case .all: "All Teams"
+        case .named(let name): name
+        case .unassigned: "No Team"
+        }
+    }
+}
+
+public struct TaskFilter: Equatable, Sendable {
+    public var status: TaskStatus?
+    public var team: TaskTeamFilter
+    public var date: TaskDateFilter
+
+    public init(
+        status: TaskStatus? = nil,
+        team: TaskTeamFilter = .all,
+        date: TaskDateFilter = .all
+    ) {
+        self.status = status
+        self.team = team
+        self.date = date
+    }
+
+    public var activeCriterionCount: Int {
+        (status == nil ? 0 : 1) + (team == .all ? 0 : 1) + (date == .all ? 0 : 1)
+    }
+
+    public var isActive: Bool { activeCriterionCount > 0 }
+}
+
 public struct TaskGroup: Identifiable, Equatable, Sendable {
     public var id: String { title }
     public var title: String
@@ -85,6 +140,47 @@ public enum ChecklistOrganizer {
 }
 
 public enum TaskOrganizer {
+    public static func filtered(
+        _ tasks: [TaskItem],
+        by filter: TaskFilter,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) -> [TaskItem] {
+        let today = calendar.startOfDay(for: now)
+        return tasks.filter { task in
+            guard filter.status == nil || task.status == filter.status else { return false }
+            switch filter.team {
+            case .all:
+                break
+            case .named(let expected):
+                guard task.team?.trimmingCharacters(in: .whitespacesAndNewlines)
+                    .caseInsensitiveCompare(expected.trimmingCharacters(in: .whitespacesAndNewlines)) == .orderedSame else {
+                    return false
+                }
+            case .unassigned:
+                guard task.team?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false else {
+                    return false
+                }
+            }
+
+            let dueDate = task.deadlineEnd ?? task.deadlineStart
+            switch filter.date {
+            case .all:
+                return true
+            case .overdue:
+                guard task.status != .done, task.status != .discarded, let dueDate else { return false }
+                return calendar.startOfDay(for: dueDate) < today
+            case .dueToday:
+                guard let dueDate else { return false }
+                return calendar.isDate(dueDate, inSameDayAs: today)
+            case .scheduled:
+                return dueDate != nil
+            case .unscheduled:
+                return dueDate == nil
+            }
+        }
+    }
+
     public static func sorted(_ tasks: [TaskItem], by sort: TaskSort) -> [TaskItem] {
         tasks.enumerated().sorted { left, right in
             let lhs = left.element
@@ -167,13 +263,25 @@ public struct TimelineScale: Equatable, Sendable {
     }
 }
 
-public enum TimelineDragOperation: Sendable {
+public enum TimelineDragOperation: Equatable, Sendable {
     case move
     case resizeStart
     case resizeEnd
 }
 
 public enum TimelineDragMath {
+    public static func operation(
+        at horizontalPosition: Double,
+        barWidth: Double,
+        handleWidth: Double
+    ) -> TimelineDragOperation {
+        let safeWidth = max(0, barWidth)
+        let safeHandle = min(max(0, handleWidth), safeWidth / 2)
+        if horizontalPosition <= safeHandle { return .resizeStart }
+        if horizontalPosition >= safeWidth - safeHandle { return .resizeEnd }
+        return .move
+    }
+
     public static func dayDelta(
         translation: Double,
         dayWidth: Double,

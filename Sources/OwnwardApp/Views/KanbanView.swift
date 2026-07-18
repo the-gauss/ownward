@@ -4,6 +4,7 @@ import OwnwardCore
 struct KanbanView: View {
     @Bindable var model: AppModel
     @Environment(\.ownwardTheme) private var theme
+    @State private var collapsedTeams: Set<String> = []
 
     var body: some View {
         GeometryReader { geometry in
@@ -39,27 +40,41 @@ struct KanbanView: View {
             ScrollView {
                 LazyVStack(spacing: 0) {
                     ForEach(TaskOrganizer.teamSwimlanes(model.visibleTasks, sort: model.kanbanSort)) { lane in
-                        HStack(spacing: 7) {
-                            Text(lane.team)
-                                .font(theme.uiFont(11, weight: .semibold))
-                            Text("\(lane.count)")
-                                .font(theme.metadataFont(9))
-                                .foregroundStyle(.secondary)
-                            Spacer()
+                        Button {
+                            toggleTeam(lane.id)
+                        } label: {
+                            HStack(spacing: 7) {
+                                Image(systemName: collapsedTeams.contains(lane.id) ? "chevron.right" : "chevron.down")
+                                    .font(theme.uiFont(9, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                                    .frame(width: 10)
+                                Text(lane.team)
+                                    .font(theme.uiFont(11, weight: .semibold))
+                                Text("\(lane.count)")
+                                    .font(theme.metadataFont(9))
+                                    .foregroundStyle(.secondary)
+                                Spacer()
+                            }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                         .padding(.horizontal, 12)
                         .frame(height: 30)
                         .background(theme.ink.opacity(0.075))
+                        .accessibilityLabel("\(lane.team), \(lane.count) tasks")
+                        .accessibilityValue(collapsedTeams.contains(lane.id) ? "Collapsed" : "Expanded")
 
-                        HStack(alignment: .top, spacing: 1) {
-                            ForEach(TaskStatus.boardColumns, id: \.self) { status in
-                                TeamStatusCell(
-                                    model: model,
-                                    team: lane.team == "No Team" ? nil : lane.team,
-                                    status: status,
-                                    tasks: lane.tasks(in: status)
-                                )
-                                .frame(width: columnWidth)
+                        if !collapsedTeams.contains(lane.id) {
+                            HStack(alignment: .top, spacing: 1) {
+                                ForEach(TaskStatus.boardColumns, id: \.self) { status in
+                                    TeamStatusCell(
+                                        model: model,
+                                        team: lane.team == "No Team" ? nil : lane.team,
+                                        status: status,
+                                        tasks: lane.tasks(in: status)
+                                    )
+                                    .frame(width: columnWidth)
+                                }
                             }
                         }
                         Divider()
@@ -92,6 +107,11 @@ struct KanbanView: View {
             }
         }
     }
+
+    private func toggleTeam(_ id: String) {
+        if collapsedTeams.contains(id) { collapsedTeams.remove(id) }
+        else { collapsedTeams.insert(id) }
+    }
 }
 
 private struct KanbanStatusHeader: View {
@@ -104,15 +124,15 @@ private struct KanbanStatusHeader: View {
         HStack {
             Circle()
                 .fill(theme.statusTint(status))
-                .frame(width: 7, height: 7)
-            Text(status.title).font(theme.uiFont(15, weight: .semibold))
+                .frame(width: 6, height: 6)
+            Text(status.title).font(theme.uiFont(13, weight: .semibold))
             Text("\(count)").font(theme.metadataFont(10)).foregroundStyle(.secondary)
             Spacer()
             Button { model.createTask(in: status) } label: { Image(systemName: "plus") }
                 .buttonStyle(.plain)
         }
         .padding(.horizontal, 14)
-        .frame(height: 44)
+        .frame(height: 40)
         .background(theme.statusTint(status).opacity(0.095))
     }
 }
@@ -209,14 +229,14 @@ struct TaskRow: View {
         HStack(spacing: 8) {
             Button { model.toggleTask(task) } label: {
                 Image(systemName: task.status == .done ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 18, weight: .regular))
+                    .font(.system(size: 16, weight: .regular))
                     .foregroundStyle(task.status == .done ? OwnwardTheme.success : .secondary)
             }
             .buttonStyle(.plain)
 
             Button { model.selectedTaskID = task.id } label: {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(task.title).font(theme.uiFont(13, weight: .medium)).lineLimit(2)
+                    Text(task.title).font(theme.uiFont(12, weight: .medium)).lineLimit(2)
                     if showsTeam, let team = task.team {
                         Text(team).font(theme.uiFont(10)).foregroundStyle(.secondary).lineLimit(1)
                     }
@@ -237,7 +257,7 @@ struct TaskRow: View {
             }
         }
         .padding(.horizontal, 12)
-        .padding(.vertical, 9)
+        .padding(.vertical, 8)
         .background(model.selectedTaskID == task.id ? theme.accent.opacity(0.12) : .clear)
         .contentShape(Rectangle())
         .draggable(task.id.description)

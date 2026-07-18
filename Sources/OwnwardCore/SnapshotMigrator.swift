@@ -1,38 +1,59 @@
 import Foundation
 
 public enum SnapshotMigrator {
-    public static let currentSchemaVersion = 2
+    public static let currentSchemaVersion = 5
 
     public static func upgrade(_ snapshot: OwnwardSnapshot, using seed: OwnwardSnapshot = .empty) -> OwnwardSnapshot {
         var upgraded = snapshot
         guard upgraded.schemaVersion < currentSchemaVersion else { return upgraded }
 
-        var laneOrders: [LaneKey: Int] = [:]
-        for taskIndex in upgraded.tasks.indices {
-            let key = LaneKey(boardID: upgraded.tasks[taskIndex].boardID, status: upgraded.tasks[taskIndex].status)
-            if upgraded.tasks[taskIndex].manualOrder == nil {
-                upgraded.tasks[taskIndex].manualOrder = laneOrders[key, default: 0]
-            }
-            laneOrders[key] = max(laneOrders[key, default: 0], (upgraded.tasks[taskIndex].manualOrder ?? 0) + 1)
-
-            guard let seededTask = seed.tasks.first(where: { $0.id == upgraded.tasks[taskIndex].id }) else { continue }
-            for miniIndex in upgraded.tasks[taskIndex].miniTasks.indices where upgraded.tasks[taskIndex].miniTasks[miniIndex].category == nil {
-                let existingMini = upgraded.tasks[taskIndex].miniTasks[miniIndex]
-                let seededMini = seededTask.miniTasks.first {
-                    $0.order == existingMini.order && $0.title == existingMini.title
+        if upgraded.schemaVersion < 2 {
+            var laneOrders: [LaneKey: Int] = [:]
+            for taskIndex in upgraded.tasks.indices {
+                let key = LaneKey(boardID: upgraded.tasks[taskIndex].boardID, status: upgraded.tasks[taskIndex].status)
+                if upgraded.tasks[taskIndex].manualOrder == nil {
+                    upgraded.tasks[taskIndex].manualOrder = laneOrders[key, default: 0]
                 }
-                upgraded.tasks[taskIndex].miniTasks[miniIndex].category = seededMini?.category
+                laneOrders[key] = max(laneOrders[key, default: 0], (upgraded.tasks[taskIndex].manualOrder ?? 0) + 1)
+
+                guard let seededTask = seed.tasks.first(where: { $0.id == upgraded.tasks[taskIndex].id }) else { continue }
+                for miniIndex in upgraded.tasks[taskIndex].miniTasks.indices where upgraded.tasks[taskIndex].miniTasks[miniIndex].category == nil {
+                    let existingMini = upgraded.tasks[taskIndex].miniTasks[miniIndex]
+                    let seededMini = seededTask.miniTasks.first {
+                        $0.order == existingMini.order && $0.title == existingMini.title
+                    }
+                    upgraded.tasks[taskIndex].miniTasks[miniIndex].category = seededMini?.category
+                }
+                let categories = Set(seededTask.miniTasks.compactMap(\.category))
+                upgraded.tasks[taskIndex].notesMarkdown = removingCategoryScaffolding(
+                    from: upgraded.tasks[taskIndex].notesMarkdown,
+                    categories: categories
+                )
             }
-            let categories = Set(seededTask.miniTasks.compactMap(\.category))
-            upgraded.tasks[taskIndex].notesMarkdown = removingCategoryScaffolding(
-                from: upgraded.tasks[taskIndex].notesMarkdown,
-                categories: categories
+        }
+
+        if upgraded.schemaVersion < 5 {
+            let tracksByRoleID = Dictionary(
+                uniqueKeysWithValues: upgraded.jobSearch.roles.map { ($0.id, $0.track) }
             )
+            for activityIndex in upgraded.jobSearch.activities.indices
+            where upgraded.jobSearch.activities[activityIndex].detail == legacyMalformedJobActivityDetail {
+                let roleID = upgraded.jobSearch.activities[activityIndex].roleID
+                if let roleID, let track = tracksByRoleID[roleID] {
+                    upgraded.jobSearch.activities[activityIndex].detail =
+                        "Verified role added to the \(track.title) track."
+                } else {
+                    upgraded.jobSearch.activities[activityIndex].detail = "Verified role added."
+                }
+            }
         }
 
         upgraded.schemaVersion = currentSchemaVersion
         return upgraded
     }
+
+    private static let legacyMalformedJobActivityDetail =
+        "Verified role added to the (verified.track.title) track."
 
     private static func removingCategoryScaffolding(from markdown: String, categories: Set<String>) -> String {
         let lines = markdown.components(separatedBy: .newlines)

@@ -8,6 +8,8 @@ public enum DomainError: Error, Equatable, LocalizedError {
     case invalidReference
     case invalidBoardName
     case boardAlreadyExists
+    case jobRoleNotFound
+    case invalidJobRole
 
     public var errorDescription: String? {
         switch self {
@@ -18,6 +20,8 @@ public enum DomainError: Error, Equatable, LocalizedError {
         case .invalidReference: "An item cannot reference itself."
         case .invalidBoardName: "A board name is required."
         case .boardAlreadyExists: "A board with that name already exists."
+        case .jobRoleNotFound: "Job role not found."
+        case .invalidJobRole: "An employer and role title are required."
         }
     }
 }

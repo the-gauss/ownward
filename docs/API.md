@@ -32,6 +32,9 @@ is locked.
 | `GET /v1/tasks/{id}` | One task with notes, links, and structured mini-tasks. |
 | `GET /v1/references` | Completion-reference groups across both item kinds. |
 | `GET /v1/day-starter/context` | Both boards plus every To Do/In Progress task, mini-task workload, deadlines, links, notes, and references. |
+| `GET /v1/job-search/context` | Every job role plus its activity history; intended as the schedule's complete source of truth. |
+| `GET /v1/job-search/roles` | Filtered and sorted roles; supports `scope`, `track`, `stage`, `search`, and `sort`. |
+| `GET /v1/job-search/roles/{id}` | One complete job role. |
 
 ## Write routes
 
@@ -47,6 +50,8 @@ is locked.
 | `PATCH /v1/mini-tasks/{id}` | Rename, categorize, re-indent, complete, or reopen a mini-task. |
 | `POST /v1/completion` | Complete/reopen a task or mini-task with reference propagation. |
 | `POST /v1/references` | Create or merge a bidirectional completion reference. |
+| `POST /v1/job-search/roles/upsert` | Idempotently insert or refresh a role by canonical posting URL, with employer/role/location fallback identity. |
+| `PATCH /v1/job-search/roles/{id}` | Update selected role fields and append a dated activity entry. Explicit JSON `null` clears nullable values. |
 
 ## Reference semantics
 
@@ -63,5 +68,33 @@ It intentionally returns the complete structured context rather than a summary:
 the schedule can count remaining mini-tasks, calculate quotas, prioritize deadline
 ranges, inspect links/notes, and then write status or completion changes through
 the same API. Existing Codex schedules are not modified by this repository.
+
+## Weekly role search
+
+`GET /v1/job-search/context` replaces the schedule's JSON list, Notion tracker,
+and conversational-memory dependency. Each role carries its track and priority;
+employer, title, location, and stage; canonical and official posting URLs;
+verification, posted, deadline, and last-checked data; compensation and position
+details; public contacts with evidence URLs; outreach guidance; application and
+mail-check history; a resume source path; linked Project Management task; and
+supporting evidence.
+
+Upserts are deliberately asymmetric: fresh research can update posting,
+position, contact, outreach, resume, and evidence fields, while existing
+application history, a more advanced user stage, creation time, and linked task
+are preserved. Every insert, refresh, stage change, application update, mailbox
+update, link change, and resume update can be recorded in the activity ledger.
+
+Valid role filters are:
+
+- `scope`: `all`, `needsAction`, `applications`, `interviews`, `followUps`, `closed`, `archive`
+- `track`: `backup`, `canon`, `backup_extreme`
+- `stage`: `researching`, `ready_to_apply`, `applied`, `interviewing`, `offer`, `rejected`, `closed`, `archived`
+- `sort`: `nextAction`, `recentlyUpdated`, `employer`, `priority`
+
+Fit scoring and resume generation are intentionally absent. The app stores only
+the path metadata required to resolve the role-specific TeX source. **Show Resume
+in Finder** opens its containing folder and selects the exact `.tex` file; Ownward
+does not compile or open a PDF.
 
 Grouping, sorting, theme, zoom, and Table column width remain local presentation preferences rather than automation data. Team/status/manual-position changes and timeline edits are exposed because they mutate the shared task model.

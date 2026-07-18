@@ -4,6 +4,12 @@ import OwnwardCore
 
 struct OwnwardTheme {
     let choice: AppThemeChoice
+    let fontScale: CGFloat
+
+    init(choice: AppThemeChoice, fontScale: CGFloat = 1) {
+        self.choice = choice
+        self.fontScale = fontScale
+    }
 
     static let success = Color(red: 0, green: 200 / 255, blue: 83 / 255)
     static let destructive = Color(red: 1, green: 95 / 255, blue: 56 / 255)
@@ -15,18 +21,24 @@ struct OwnwardTheme {
     var panelSurface: Color { isSystem ? Color(nsColor: .controlBackgroundColor) : surface }
 
     func uiFont(_ size: CGFloat, weight: Font.Weight = .regular) -> Font {
-        guard choice.fontFamily == .ubuntu else { return .system(size: size, weight: weight) }
+        let scaledSize = size * fontScale
+        guard choice.fontFamily == .ubuntu else { return .system(size: scaledSize, weight: weight) }
         let name: String
         switch weight {
         case .bold, .heavy, .black, .semibold: name = "Ubuntu-Bold"
         case .ultraLight, .thin, .light: name = "Ubuntu-Light"
         default: name = "Ubuntu-Regular"
         }
-        return .custom(name, fixedSize: size)
+        return .custom(name, fixedSize: scaledSize)
     }
 
     func metadataFont(_ size: CGFloat) -> Font {
-        isSystem ? .system(size: size) : .custom("Ubuntu-Regular", fixedSize: size)
+        let scaledSize = size * fontScale
+        return isSystem ? .system(size: scaledSize) : .custom("Ubuntu-Regular", fixedSize: scaledSize)
+    }
+
+    func scalingFonts(by scale: Double) -> OwnwardTheme {
+        OwnwardTheme(choice: choice, fontScale: CGFloat(scale))
     }
 
     func statusTint(_ status: TaskStatus) -> Color {

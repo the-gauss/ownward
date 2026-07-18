@@ -62,29 +62,29 @@ struct OwnwardApp: App {
             CommandGroup(after: .newItem) {
                 Button("New Task") { model?.createTask() }
                     .keyboardShortcut("n", modifiers: [.command])
-                    .disabled(model == nil)
+                    .disabled(model?.workspaceMode.supportsProjectControls != true)
             }
             CommandMenu("Task") {
                 Button("Move to To Do") { if let model, let id = model.selectedTaskID { model.move(id, to: .toDo) } }
                     .keyboardShortcut("1", modifiers: [.command, .shift])
-                    .disabled(model == nil)
+                    .disabled(model?.workspaceMode.supportsProjectControls != true)
                 Button("Move to In Progress") { if let model, let id = model.selectedTaskID { model.move(id, to: .inProgress) } }
                     .keyboardShortcut("2", modifiers: [.command, .shift])
-                    .disabled(model == nil)
+                    .disabled(model?.workspaceMode.supportsProjectControls != true)
                 Button("Mark Done") { if let model, let task = model.selectedTask { model.toggleTask(task) } }
                     .keyboardShortcut("3", modifiers: [.command, .shift])
-                    .disabled(model == nil)
+                    .disabled(model?.workspaceMode.supportsProjectControls != true)
             }
             CommandGroup(after: .toolbar) {
                 Button("Zoom In") { model?.zoomIn() }
                     .keyboardShortcut("+", modifiers: [.command])
-                    .disabled(model == nil)
+                    .disabled(model?.workspaceMode.supportsProjectControls != true)
                 Button("Zoom Out") { model?.zoomOut() }
                     .keyboardShortcut("-", modifiers: [.command])
-                    .disabled(model == nil)
+                    .disabled(model?.workspaceMode.supportsProjectControls != true)
                 Button("Actual Size") { model?.resetZoom() }
                     .keyboardShortcut("0", modifiers: [.command])
-                    .disabled(model == nil)
+                    .disabled(model?.workspaceMode.supportsProjectControls != true)
                 Divider()
                 Menu("Appearance") {
                     ForEach(AppThemeChoice.allCases) { choice in

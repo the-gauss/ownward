@@ -5,8 +5,21 @@ import OwnwardServices
 enum AppBootstrap {
     @MainActor
     static func makeModel() throws -> AppModel {
-        let support = try FileManager.default.url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-            .appendingPathComponent("Ownward", isDirectory: true)
+        let support: URL
+        let override = ProcessInfo.processInfo.environment["OWNWARD_SUPPORT_DIRECTORY"]?
+            .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if override.isEmpty {
+            support = try FileManager.default.url(
+                for: .applicationSupportDirectory,
+                in: .userDomainMask,
+                appropriateFor: nil,
+                create: true
+            ).appendingPathComponent("Ownward", isDirectory: true)
+        } else {
+            support = URL(fileURLWithPath: NSString(string: override).expandingTildeInPath, isDirectory: true)
+                .standardizedFileURL
+            try FileManager.default.createDirectory(at: support, withIntermediateDirectories: true)
+        }
         let seed = try bundledSnapshot()
         let repository = try WorkspaceRepository(fileURL: support.appendingPathComponent("workspace.json"), initialSnapshot: seed)
         let token = try LocalAPICredentials.loadOrCreateToken(at: support.appendingPathComponent("api-token"))

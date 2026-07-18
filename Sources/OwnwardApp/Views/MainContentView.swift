@@ -7,23 +7,29 @@ struct MainContentView: View {
     @State private var isAdjustingTaskColumn = false
 
     var body: some View {
-        GeometryReader { geometry in
-            VStack(spacing: 0) {
-                HStack(alignment: .firstTextBaseline) {
+        VStack(spacing: 0) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(theme.uiFont(26, weight: .semibold))
                         .foregroundStyle(theme.ink)
                         .lineLimit(1)
-                        .fixedSize()
-                    Image(systemName: "chevron.down")
-                        .font(.caption)
+                    Text(taskCountText)
+                        .font(theme.uiFont(11))
                         .foregroundStyle(.secondary)
-                    Spacer()
+                        .lineLimit(1)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 14)
-                .padding(.bottom, 14)
+                Spacer(minLength: 8)
+            }
+            .padding(.horizontal, 20)
+            .padding(.top, 14)
+            .padding(.bottom, 12)
 
+            if model.visibleTasks.isEmpty {
+                projectEmptyState
+                    .padding(.horizontal, 12)
+                    .padding(.bottom, 12)
+            } else {
                 Group {
                     switch model.viewMode {
                     case .kanban: KanbanView(model: model)
@@ -34,24 +40,24 @@ struct MainContentView: View {
                 .padding(.horizontal, 12)
                 .padding(.bottom, 12)
             }
-            .frame(width: geometry.size.width / model.zoomScale, height: geometry.size.height / model.zoomScale)
-            .scaleEffect(model.zoomScale, anchor: .topLeading)
         }
         .background(theme.isSystem ? Color.clear : theme.surface)
+        .onChange(of: model.projectTaskFilter) { _, _ in reconcileSelection() }
+        .onChange(of: model.searchText) { _, _ in reconcileSelection() }
         .toolbar {
             ToolbarItemGroup(placement: .primaryAction) {
                 Button { model.createTask() } label: { Label("New Task", systemImage: "plus") }
                     .labelStyle(.titleAndIcon)
                 TextField("Search", text: $model.searchText)
                     .textFieldStyle(.roundedBorder)
-                    .frame(width: 250)
+                    .frame(width: 200)
                 Picker("View", selection: $model.viewMode) {
                     ForEach(MainViewMode.allCases) { mode in
                         Image(systemName: mode.systemImage).tag(mode)
                     }
                 }
                 .pickerStyle(.segmented)
-                .frame(width: 150)
+                .frame(width: 130)
                 Menu {
                     ForEach(groupingOptions, id: \.self) { grouping in
                         Button {
@@ -80,6 +86,7 @@ struct MainContentView: View {
                 } label: {
                     Label("Sort", systemImage: "arrow.up.arrow.down")
                 }
+                projectFilterMenu
                 if model.viewMode == .table {
                     Button { isAdjustingTaskColumn.toggle() } label: {
                         Label("Task Column Width", systemImage: "arrow.left.and.right")
@@ -114,14 +121,111 @@ struct MainContentView: View {
                     }
                     .help("Adjust Task column width")
                 }
-                Button {
-                    if model.selectedTaskID != nil { model.selectedTaskID = nil }
-                } label: {
-                    Label("Inspector", systemImage: "info.circle")
-                }
-                .labelStyle(.titleAndIcon)
-                .help("Select a task to open the inspector")
             }
+        }
+    }
+
+    @ViewBuilder
+    private var projectEmptyState: some View {
+        ContentUnavailableView {
+            Label(hasProjectQuery ? "No Matching Tasks" : "No Tasks Here", systemImage: "checklist")
+        } description: {
+            Text(hasProjectQuery
+                 ? "Change the search or filters to see more work."
+                 : "This project view has no tasks yet.")
+        } actions: {
+            if hasProjectQuery {
+                Button("Clear Search and Filters") {
+                    model.searchText = ""
+                    model.resetTaskFilters()
+                }
+            } else if case .board = model.sidebarSelection {
+                Button("New Task") { model.createTask() }
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    private var projectFilterMenu: some View {
+        Menu {
+            Section("Status") {
+                filterButton("All Statuses", selected: model.projectTaskFilter.status == nil) {
+                    model.setProjectStatusFilter(nil)
+                }
+                ForEach(model.availableProjectStatuses, id: \.self) { status in
+                    filterButton(status.title, selected: model.projectTaskFilter.status == status) {
+                        model.setProjectStatusFilter(status)
+                    }
+                }
+            }
+            Section("Team") {
+                filterButton("All Teams", selected: model.projectTaskFilter.team == .all) {
+                    model.setProjectTeamFilter(.all)
+                }
+                ForEach(model.availableProjectTeams, id: \.self) { team in
+                    filterButton(team, selected: model.projectTaskFilter.team == .named(team)) {
+                        model.setProjectTeamFilter(.named(team))
+                    }
+                }
+                if model.hasUnassignedProjectTasks {
+                    filterButton("No Team", selected: model.projectTaskFilter.team == .unassigned) {
+                        model.setProjectTeamFilter(.unassigned)
+                    }
+                }
+            }
+            Section("Dates") {
+                ForEach(TaskDateFilter.allCases) { dateFilter in
+                    filterButton(dateFilter.title, selected: model.projectTaskFilter.date == dateFilter) {
+                        model.setProjectDateFilter(dateFilter)
+                    }
+                }
+            }
+            if model.projectTaskFilter.isActive {
+                Divider()
+                Button("Clear Filters") { model.resetTaskFilters() }
+            }
+        } label: {
+            Label(
+                model.projectTaskFilter.isActive
+                    ? "Filter \(model.projectTaskFilter.activeCriterionCount)"
+                    : "Filter",
+                systemImage: model.projectTaskFilter.isActive
+                    ? "line.3.horizontal.decrease.circle.fill"
+                    : "line.3.horizontal.decrease.circle"
+            )
+        }
+        .help(model.projectTaskFilter.isActive
+              ? "\(model.projectTaskFilter.activeCriterionCount) active task filters"
+              : "Filter tasks by status, team, or dates")
+    }
+
+    private func filterButton(
+        _ title: String,
+        selected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            if selected { Label(title, systemImage: "checkmark") }
+            else { Text(title) }
+        }
+    }
+
+    private var taskCountText: String {
+        let visible = model.visibleTasks.count
+        let total = model.projectScopeTaskCount
+        let noun = total == 1 ? "task" : "tasks"
+        return hasProjectQuery ? "\(visible) of \(total) \(noun)" : "\(total) \(noun)"
+    }
+
+    private var hasProjectQuery: Bool {
+        model.projectTaskFilter.isActive
+            || !model.searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+
+    private func reconcileSelection() {
+        guard let selected = model.selectedTaskID else { return }
+        if !model.visibleTasks.contains(where: { $0.id == selected }) {
+            model.selectedTaskID = nil
         }
     }
 
