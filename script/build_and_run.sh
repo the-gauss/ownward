@@ -36,15 +36,28 @@ cd "$ROOT_DIR"
 swift build -c "$BUILD_CONFIGURATION"
 BUILD_DIR="$(swift build -c "$BUILD_CONFIGURATION" --show-bin-path)"
 BUILD_BINARY="$BUILD_DIR/$APP_NAME"
+RESOURCE_BUNDLE="$(/usr/bin/find "$BUILD_DIR" -maxdepth 1 -type d -name '*.bundle' -print -quit)"
+
+if [[ -z "$RESOURCE_BUNDLE" ]]; then
+  echo "error: SwiftPM did not produce an app resource bundle" >&2
+  exit 1
+fi
 
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS" "$APP_RESOURCES"
 cp "$BUILD_BINARY" "$APP_BINARY"
 chmod +x "$APP_BINARY"
-if [[ -d "$BUILD_DIR/Ownward_OwnwardApp.bundle" ]]; then
-  cp -R "$BUILD_DIR/Ownward_OwnwardApp.bundle" "$APP_RESOURCES/"
-fi
+# Place the resource files in the conventional, signed app location. The app
+# deliberately loads these through Bundle.main instead of SwiftPM's generated
+# Bundle.module accessor, whose executable lookup is not compatible with a
+# normal macOS app bundle.
+cp -R "$RESOURCE_BUNDLE"/. "$APP_RESOURCES/"
 cp "$ROOT_DIR/Sources/OwnwardApp/Resources/Brand/Ownward.icns" "$APP_RESOURCES/Ownward.icns"
+
+if [[ ! -f "$APP_RESOURCES/ReadexPro_600SemiBold.ttf" ]]; then
+  echo "error: packaged app resources are incomplete" >&2
+  exit 1
+fi
 
 cat >"$INFO_PLIST" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>

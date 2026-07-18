@@ -35,8 +35,7 @@ enum OwnwardBrand {
     }
 
     private static func resourceURL(name: String, extension fileExtension: String, subdirectory: String) -> URL? {
-        Bundle.module.url(forResource: name, withExtension: fileExtension, subdirectory: subdirectory)
-            ?? Bundle.module.url(forResource: name, withExtension: fileExtension)
+        OwnwardResources.url(name: name, extension: fileExtension, subdirectory: subdirectory)
     }
 }
 

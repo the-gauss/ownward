@@ -21,7 +21,7 @@ enum AppBootstrap {
     private static func bundledSnapshot() throws -> OwnwardSnapshot {
         let names = ["minkops-notion-export", "myndral-notion-export"]
         let snapshots = try names.map { name -> OwnwardSnapshot in
-            guard let url = Bundle.module.url(forResource: name, withExtension: "json") else { return .empty }
+            guard let url = OwnwardResources.url(name: name, extension: "json") else { return .empty }
             return try NotionExportImporter.import(data: Data(contentsOf: url))
         }
         return NotionExportImporter.merge(snapshots)
