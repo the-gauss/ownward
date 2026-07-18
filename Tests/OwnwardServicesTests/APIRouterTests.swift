@@ -5,6 +5,138 @@ import Testing
 
 @Suite("Automation API")
 struct APIRouterTests {
+    @Test("job-search context is a complete durable replacement for tracker memory")
+    func jobSearchContext() async throws {
+        let role = JobRole(
+            track: .backup,
+            priority: 1,
+            employer: "Wesway",
+            role: "Data Specialist",
+            posting: JobPosting(jobURL: "https://example.ca/jobs/1"),
+            application: JobApplication(applied: true, notes: "Preserve this")
+        )
+        let activity = JobActivity(roleID: role.id, kind: .created, detail: "Migrated")
+        let repository = try WorkspaceRepository(inMemory: OwnwardSnapshot(
+            jobSearch: JobSearchWorkspace(roles: [role], activities: [activity])
+        ))
+        let router = APIRouter(repository: repository, token: "secret")
+
+        let response = await router.handle(APIRequest(
+            method: "GET",
+            path: "/v1/job-search/context",
+            headers: ["authorization": "Bearer secret"]
+        ))
+
+        let context = try JSONDecoder.api.decode(JobSearchContext.self, from: response.body)
+        #expect(response.status == 200)
+        #expect(context.roles.map(\.id) == [role.id])
+        #expect(context.roles.first?.application.notes == "Preserve this")
+        #expect(context.activities.map(\.id) == [activity.id])
+        #expect(context.activities.first?.detail == "Migrated")
+    }
+
+    @Test("job-role list supports track, stage, scope, and human search filters")
+    func listsFilteredJobRoles() async throws {
+        var ready = JobRole(
+            track: .backup,
+            employer: "Example County",
+            role: "Data Analyst",
+            location: JobLocation(city: "Thunder Bay", province: "ON"),
+            posting: JobPosting(jobURL: "https://example.ca/a"),
+            stage: .readyToApply
+        )
+        ready.application.notes = "municipal referral"
+        let closed = JobRole(
+            track: .canon,
+            employer: "Other Co",
+            role: "Engineer",
+            posting: JobPosting(jobURL: "https://example.ca/b"),
+            stage: .closed
+        )
+        let repository = try WorkspaceRepository(inMemory: OwnwardSnapshot(
+            jobSearch: JobSearchWorkspace(roles: [closed, ready])
+        ))
+        let router = APIRouter(repository: repository, token: "secret")
+
+        let response = await router.handle(APIRequest(
+            method: "GET",
+            path: "/v1/job-search/roles",
+            query: ["track": "backup", "scope": "needsAction", "search": "municipal"],
+            headers: ["authorization": "Bearer secret"]
+        ))
+        let roles = try JSONDecoder.api.decode([JobRole].self, from: response.body)
+
+        #expect(roles.map(\.employer) == ["Example County"])
+    }
+
+    @Test("job-role upsert and patch preserve application history and support explicit nulls")
+    func writesJobRolesSafely() async throws {
+        let repository = try WorkspaceRepository(inMemory: .empty)
+        let router = APIRouter(repository: repository, token: "secret")
+        let headers = ["authorization": "Bearer secret"]
+        var request = UpsertJobRoleRequest(
+            track: .backup,
+            priority: 1,
+            employer: "Wesway",
+            role: "Data Specialist",
+            location: JobLocation(city: "Thunder Bay", province: "ON"),
+            posting: JobPosting(status: "Open", jobURL: "https://example.ca/job"),
+            stage: .readyToApply
+        )
+
+        let createdResponse = await router.handle(APIRequest(
+            method: "POST",
+            path: "/v1/job-search/roles/upsert",
+            headers: headers,
+            body: try JSONEncoder.api.encode(request)
+        ))
+        let created = try JSONDecoder.api.decode(JobRole.self, from: createdResponse.body)
+        let appliedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let patchResponse = await router.handle(APIRequest(
+            method: "PATCH",
+            path: "/v1/job-search/roles/\(created.id)",
+            headers: headers,
+            body: try JSONEncoder.api.encode(UpdateJobRoleRequest(
+                patch: JobRolePatch(
+                    application: JobApplicationPatch(
+                        applied: true,
+                        dateApplied: .value(appliedAt),
+                        followUpDate: .value(appliedAt.addingTimeInterval(86_400)),
+                        notes: "Submitted by me"
+                    ),
+                    stage: .applied
+                ),
+                activityKind: .applicationUpdated,
+                activityDetail: "Marked applied"
+            ))
+        ))
+        #expect(patchResponse.status == 200)
+
+        request.posting.status = "Open — reverified"
+        let refreshedResponse = await router.handle(APIRequest(
+            method: "POST",
+            path: "/v1/job-search/roles/upsert",
+            headers: headers,
+            body: try JSONEncoder.api.encode(request)
+        ))
+        let refreshed = try JSONDecoder.api.decode(JobRole.self, from: refreshedResponse.body)
+        #expect(refreshed.id == created.id)
+        #expect(refreshed.application.notes == "Submitted by me")
+        #expect(refreshed.stage == .applied)
+
+        let clearedResponse = await router.handle(APIRequest(
+            method: "PATCH",
+            path: "/v1/job-search/roles/\(created.id)",
+            headers: headers,
+            body: try JSONEncoder.api.encode(UpdateJobRoleRequest(
+                patch: JobRolePatch(application: JobApplicationPatch(followUpDate: .null))
+            ))
+        ))
+        let cleared = try JSONDecoder.api.decode(JobRole.self, from: clearedResponse.body)
+        #expect(cleared.application.followUpDate == nil)
+        #expect(cleared.application.dateApplied == appliedAt)
+    }
+
     @Test("day starter context includes active tasks and structured mini-tasks")
     func dayStarterContext() async throws {
         let board = Board(name: "Minkops Kanban")

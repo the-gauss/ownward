@@ -70,6 +70,53 @@ struct TaskOrganizationTests {
         #expect(TimelineDragMath.dayDelta(translation: -400, dayWidth: 34, operation: .resizeEnd, spanDays: 4) == -3)
     }
 
+    @Test("timeline pointer hit zones distinguish both resize edges from bar movement")
+    func timelinePointerHitZones() {
+        #expect(TimelineDragMath.operation(at: 4, barWidth: 160, handleWidth: 16) == .resizeStart)
+        #expect(TimelineDragMath.operation(at: 80, barWidth: 160, handleWidth: 16) == .move)
+        #expect(TimelineDragMath.operation(at: 156, barWidth: 160, handleWidth: 16) == .resizeEnd)
+    }
+
+    @Test("project filters combine status, team, and schedule without hiding valid matches")
+    func filtersProjectTasks() {
+        let calendar = Calendar(identifier: .gregorian)
+        let now = calendar.date(from: DateComponents(year: 2026, month: 7, day: 18, hour: 12))!
+        let board = Board(name: "Minkops")
+        let overdue = TaskItem(
+            boardID: board.id,
+            title: "Overdue SQL",
+            status: .inProgress,
+            team: "Interview Prep",
+            deadlineEnd: calendar.date(byAdding: .day, value: -1, to: now)
+        )
+        let today = TaskItem(
+            boardID: board.id,
+            title: "Today DSA",
+            status: .inProgress,
+            team: "Interview Prep",
+            deadlineEnd: now
+        )
+        let unscheduled = TaskItem(boardID: board.id, title: "Write docs", status: .toDo, team: nil)
+        let doneOverdue = TaskItem(
+            boardID: board.id,
+            title: "Completed old work",
+            status: .done,
+            team: "Interview Prep",
+            deadlineEnd: calendar.date(byAdding: .day, value: -3, to: now)
+        )
+        let tasks = [overdue, today, unscheduled, doneOverdue]
+
+        let focused = TaskFilter(
+            status: .inProgress,
+            team: .named("interview prep"),
+            date: .overdue
+        )
+        #expect(TaskOrganizer.filtered(tasks, by: focused, now: now, calendar: calendar).map(\.title) == ["Overdue SQL"])
+        #expect(TaskOrganizer.filtered(tasks, by: TaskFilter(team: .unassigned), now: now, calendar: calendar).map(\.title) == ["Write docs"])
+        #expect(TaskOrganizer.filtered(tasks, by: TaskFilter(date: .dueToday), now: now, calendar: calendar).map(\.title) == ["Today DSA"])
+        #expect(TaskOrganizer.filtered(tasks, by: TaskFilter(date: .overdue), now: now, calendar: calendar).map(\.title) == ["Overdue SQL"])
+    }
+
     @Test("uncategorized first checklist items form a safe initial group")
     func groupsUncategorizedChecklistItems() {
         let taskID = TaskID()

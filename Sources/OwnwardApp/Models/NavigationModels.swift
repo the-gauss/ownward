@@ -13,6 +13,52 @@ enum MainViewMode: String, CaseIterable, Identifiable {
     }
 }
 
+enum WorkspaceMode: String, CaseIterable, Identifiable {
+    case projectManagement
+    case jobSearch
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .projectManagement: "Project Management"
+        case .jobSearch: "Job Search"
+        }
+    }
+    var systemImage: String {
+        switch self {
+        case .projectManagement: "rectangle.3.group"
+        case .jobSearch: "briefcase"
+        }
+    }
+
+    var supportsProjectControls: Bool { self == .projectManagement }
+}
+
+enum JobTrackFilter: String, CaseIterable, Identifiable {
+    case all
+    case backup
+    case canon
+    case backupExtreme
+
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .all: "All Tracks"
+        case .backup: "Backup"
+        case .canon: "Canon"
+        case .backupExtreme: "Backup Extreme"
+        }
+    }
+    var track: JobSearchTrack? {
+        switch self {
+        case .all: nil
+        case .backup: .backup
+        case .canon: .canon
+        case .backupExtreme: .backupExtreme
+        }
+    }
+}
+
 enum SavedView: String, CaseIterable, Identifiable {
     case today, upcoming, paused, discarded
     var id: String { rawValue }

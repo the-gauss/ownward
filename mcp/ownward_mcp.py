@@ -9,6 +9,7 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -53,6 +54,110 @@ class OwnwardClient:
             raise RuntimeError(f"Ownward API returned {error.code}: {message}") from error
         except urllib.error.URLError as error:
             raise RuntimeError("Ownward is not reachable. Launch the app and try again.") from error
+
+
+DATE_OR_NULL = {
+    "anyOf": [
+        {"type": "string", "description": "ISO-8601 date or datetime"},
+        {"type": "null", "description": "Clear the stored date"},
+    ]
+}
+OPTIONAL_INTEGER = {"anyOf": [{"type": "integer"}, {"type": "null"}]}
+OPTIONAL_ID = {"anyOf": [{"type": "string"}, {"type": "null"}]}
+TRACK_SCHEMA = {"type": "string", "enum": ["backup", "canon", "backup_extreme"]}
+STAGE_SCHEMA = {
+    "type": "string",
+    "enum": ["researching", "ready_to_apply", "applied", "interviewing", "offer", "rejected", "closed", "archived"],
+}
+LOCATION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "city": {"type": "string"},
+        "province": {"type": "string"},
+        "work_arrangement": {"type": "string"},
+    },
+    "additionalProperties": False,
+}
+POSTING_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "status": {"type": "string"},
+        "verification_tier": {"type": "string"},
+        "job_url": {"type": "string"},
+        "official_careers_url": {"type": "string"},
+        "posted_date": DATE_OR_NULL,
+        "deadline_date": DATE_OR_NULL,
+        "deadline_notes": {"type": "string"},
+        "last_verified": DATE_OR_NULL,
+    },
+    "additionalProperties": False,
+}
+POSITION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "compensation": {"type": "string"},
+        "employment_type": {"type": "string"},
+        "experience_requirement": {"type": "string"},
+        "relevant_skills": {"type": "string"},
+    },
+    "additionalProperties": False,
+}
+CONTACT_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "id": {"type": "string"},
+        "name": {"type": "string"},
+        "title_or_department": {"type": "string"},
+        "email": {"type": "string"},
+        "phone": {"type": "string"},
+        "source_url": {"type": "string"},
+        "confidence": {"type": "string"},
+        "is_primary": {"type": "boolean"},
+    },
+    "additionalProperties": False,
+}
+OUTREACH_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "best_channel": {"type": "string"},
+        "suggested_angle": {"type": "string"},
+        "confidence": {"type": "string"},
+    },
+    "additionalProperties": False,
+}
+APPLICATION_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "applied": {"type": "boolean"},
+        "date_applied": DATE_OR_NULL,
+        "contacted": {"type": "boolean"},
+        "follow_up_date": DATE_OR_NULL,
+        "response": {"type": "string"},
+        "notes": {"type": "string"},
+        "last_mail_checked": DATE_OR_NULL,
+    },
+    "additionalProperties": False,
+}
+RESUME_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "source_path": {"type": "string"},
+        "fact_check_status": {"type": "string"},
+        "last_reviewed": DATE_OR_NULL,
+    },
+    "additionalProperties": False,
+}
+EVIDENCE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "id": {"type": "string"},
+        "title": {"type": "string", "minLength": 1},
+        "url": {"type": "string", "minLength": 1},
+        "note": {"type": "string"},
+    },
+    "required": ["title", "url"],
+    "additionalProperties": False,
+}
 
 
 TOOLS: list[dict[str, Any]] = [
@@ -256,6 +361,95 @@ TOOLS: list[dict[str, Any]] = [
         "description": "Return the complete actionable context for Daily Day Starter: both boards, To Do and In Progress tasks, deadlines, notes, links, and structured mini-task workload.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
+    {
+        "name": "ownward_job_search_context",
+        "description": "Return every durable job-role record and activity entry. Use this first instead of tracker files, Notion, or task memory.",
+        "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+    {
+        "name": "ownward_list_job_roles",
+        "description": "List durable job roles with optional lifecycle, track, stage, search, and sort filters.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "track": TRACK_SCHEMA,
+                "stage": STAGE_SCHEMA,
+                "scope": {
+                    "type": "string",
+                    "enum": ["all", "needsAction", "applications", "interviews", "followUps", "closed", "archive"],
+                },
+                "search": {"type": "string"},
+                "sort": {"type": "string", "enum": ["nextAction", "recentlyUpdated", "employer", "priority"]},
+            },
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "ownward_get_job_role",
+        "description": "Read one complete job-role record, including verified evidence and protected human application history.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {"job_role_id": {"type": "string"}},
+            "required": ["job_role_id"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "ownward_upsert_job_role",
+        "description": "Create or idempotently refresh a verified role. Existing application history, advanced stage, and linked task are preserved.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "track": TRACK_SCHEMA,
+                "priority": OPTIONAL_INTEGER,
+                "employer": {"type": "string", "minLength": 1},
+                "role": {"type": "string", "minLength": 1},
+                "location": LOCATION_SCHEMA,
+                "posting": POSTING_SCHEMA,
+                "position": POSITION_SCHEMA,
+                "contacts": {"type": "array", "items": CONTACT_SCHEMA},
+                "outreach": OUTREACH_SCHEMA,
+                "application": APPLICATION_SCHEMA,
+                "resume": RESUME_SCHEMA,
+                "evidence": {"type": "array", "items": EVIDENCE_SCHEMA},
+                "stage": STAGE_SCHEMA,
+                "linked_task_id": OPTIONAL_ID,
+            },
+            "required": ["track", "employer", "role"],
+            "additionalProperties": False,
+        },
+    },
+    {
+        "name": "ownward_update_job_role",
+        "description": "Patch only the supplied fields of one role. Omitted fields are preserved; null clears an optional date, priority, or linked task.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "job_role_id": {"type": "string"},
+                "track": TRACK_SCHEMA,
+                "priority": OPTIONAL_INTEGER,
+                "employer": {"type": "string"},
+                "role": {"type": "string"},
+                "location": LOCATION_SCHEMA,
+                "posting": POSTING_SCHEMA,
+                "position": POSITION_SCHEMA,
+                "contacts": {"type": "array", "items": CONTACT_SCHEMA},
+                "outreach": OUTREACH_SCHEMA,
+                "application": APPLICATION_SCHEMA,
+                "resume": RESUME_SCHEMA,
+                "evidence": {"type": "array", "items": EVIDENCE_SCHEMA},
+                "stage": STAGE_SCHEMA,
+                "linked_task_id": OPTIONAL_ID,
+                "activity_kind": {
+                    "type": "string",
+                    "enum": ["updated", "stage_changed", "application_updated", "mailbox_updated", "linked_task_updated", "resume_updated"],
+                },
+                "activity_detail": {"type": "string"},
+            },
+            "required": ["job_role_id"],
+            "additionalProperties": False,
+        },
+    },
 ]
 
 
@@ -273,7 +467,7 @@ class MCPServer:
                 result = {
                     "protocolVersion": "2025-06-18",
                     "capabilities": {"tools": {"listChanged": False}},
-                    "serverInfo": {"name": "ownward", "version": "0.3.0"},
+                    "serverInfo": {"name": "ownward", "version": "0.5.0"},
                 }
             elif method == "ping":
                 result = {}
@@ -372,6 +566,30 @@ class MCPServer:
             })
         elif name == "ownward_day_starter_context":
             data = self.client.request("GET", "/v1/day-starter/context")
+        elif name == "ownward_job_search_context":
+            data = self.client.request("GET", "/v1/job-search/context")
+        elif name == "ownward_list_job_roles":
+            query = urllib.parse.urlencode({
+                key: value for key, value in {
+                    "track": arguments.get("track"),
+                    "stage": arguments.get("stage"),
+                    "scope": arguments.get("scope"),
+                    "search": arguments.get("search"),
+                    "sort": arguments.get("sort"),
+                }.items() if value is not None
+            })
+            data = self.client.request("GET", "/v1/job-search/roles" + (f"?{query}" if query else ""))
+        elif name == "ownward_get_job_role":
+            data = self.client.request("GET", f"/v1/job-search/roles/{arguments['job_role_id']}")
+        elif name == "ownward_upsert_job_role":
+            data = self.client.request("POST", "/v1/job-search/roles/upsert", self._job_role_body(arguments))
+        elif name == "ownward_update_job_role":
+            body = {"patch": self._job_role_patch(arguments)}
+            if "activity_kind" in arguments:
+                body["activityKind"] = arguments["activity_kind"]
+            if "activity_detail" in arguments:
+                body["activityDetail"] = arguments["activity_detail"]
+            data = self.client.request("PATCH", f"/v1/job-search/roles/{arguments['job_role_id']}", body)
         else:
             raise ValueError(f"Unknown Ownward tool: {name}")
         return {
@@ -392,6 +610,161 @@ class MCPServer:
             "links": "links",
         }
         return {target: arguments[source] for source, target in mapping.items() if source in arguments}
+
+    @staticmethod
+    def _map_fields(source: dict[str, Any], mapping: dict[str, str]) -> dict[str, Any]:
+        return {target: source[key] for key, target in mapping.items() if key in source}
+
+    @classmethod
+    def _location(cls, value: dict[str, Any], complete: bool = False) -> dict[str, Any]:
+        result = cls._map_fields(value, {
+            "city": "city", "province": "province", "work_arrangement": "workArrangement",
+        })
+        if complete:
+            return {"city": "", "province": "", "workArrangement": ""} | result
+        return result
+
+    @classmethod
+    def _posting(cls, value: dict[str, Any], complete: bool = False) -> dict[str, Any]:
+        result = cls._map_fields(value, {
+            "status": "status",
+            "verification_tier": "verificationTier",
+            "job_url": "jobURL",
+            "official_careers_url": "officialCareersURL",
+            "posted_date": "postedDate",
+            "deadline_date": "deadlineDate",
+            "deadline_notes": "deadlineNotes",
+            "last_verified": "lastVerified",
+        })
+        if complete:
+            defaults = {
+                "status": "", "verificationTier": "", "jobURL": "",
+                "officialCareersURL": "", "deadlineNotes": "",
+            }
+            return defaults | result
+        return result
+
+    @classmethod
+    def _position(cls, value: dict[str, Any], complete: bool = False) -> dict[str, Any]:
+        result = cls._map_fields(value, {
+            "compensation": "compensation",
+            "employment_type": "employmentType",
+            "experience_requirement": "experienceRequirement",
+            "relevant_skills": "relevantSkills",
+        })
+        if complete:
+            defaults = {key: "" for key in ["compensation", "employmentType", "experienceRequirement", "relevantSkills"]}
+            return defaults | result
+        return result
+
+    @classmethod
+    def _outreach(cls, value: dict[str, Any], complete: bool = False) -> dict[str, Any]:
+        result = cls._map_fields(value, {
+            "best_channel": "bestChannel", "suggested_angle": "suggestedAngle", "confidence": "confidence",
+        })
+        if complete:
+            return {"bestChannel": "", "suggestedAngle": "", "confidence": ""} | result
+        return result
+
+    @classmethod
+    def _application(cls, value: dict[str, Any], complete: bool = False) -> dict[str, Any]:
+        result = cls._map_fields(value, {
+            "applied": "applied",
+            "date_applied": "dateApplied",
+            "contacted": "contacted",
+            "follow_up_date": "followUpDate",
+            "response": "response",
+            "notes": "notes",
+            "last_mail_checked": "lastMailChecked",
+        })
+        if complete:
+            defaults = {"applied": False, "contacted": False, "response": "", "notes": ""}
+            return defaults | result
+        return result
+
+    @classmethod
+    def _resume(cls, value: dict[str, Any], complete: bool = False) -> dict[str, Any]:
+        result = cls._map_fields(value, {
+            "source_path": "sourcePath", "fact_check_status": "factCheckStatus", "last_reviewed": "lastReviewed",
+        })
+        if complete:
+            return {"sourcePath": "", "factCheckStatus": ""} | result
+        return result
+
+    @classmethod
+    def _contacts(cls, values: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        mapped = []
+        for value in values:
+            item = cls._map_fields(value, {
+                "id": "id",
+                "name": "name",
+                "title_or_department": "titleOrDepartment",
+                "email": "email",
+                "phone": "phone",
+                "source_url": "sourceURL",
+                "confidence": "confidence",
+                "is_primary": "isPrimary",
+            })
+            defaults = {
+                "id": str(uuid.uuid4()), "name": "", "titleOrDepartment": "", "email": "",
+                "phone": "", "sourceURL": "", "confidence": "", "isPrimary": False,
+            }
+            mapped.append(defaults | item)
+        return mapped
+
+    @classmethod
+    def _evidence(cls, values: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        mapped = []
+        for value in values:
+            item = cls._map_fields(value, {"id": "id", "title": "title", "url": "url", "note": "note"})
+            mapped.append({"id": str(uuid.uuid4()), "note": ""} | item)
+        return mapped
+
+    @classmethod
+    def _job_role_body(cls, arguments: dict[str, Any]) -> dict[str, Any]:
+        body: dict[str, Any] = {
+            "track": arguments["track"],
+            "employer": arguments["employer"],
+            "role": arguments["role"],
+            "location": cls._location(arguments.get("location", {}), complete=True),
+            "posting": cls._posting(arguments.get("posting", {}), complete=True),
+            "position": cls._position(arguments.get("position", {}), complete=True),
+            "contacts": cls._contacts(arguments.get("contacts", [])),
+            "outreach": cls._outreach(arguments.get("outreach", {}), complete=True),
+            "application": cls._application(arguments.get("application", {}), complete=True),
+            "resume": cls._resume(arguments.get("resume", {}), complete=True),
+            "evidence": cls._evidence(arguments.get("evidence", [])),
+            "stage": arguments.get("stage", "researching"),
+        }
+        if "priority" in arguments:
+            body["priority"] = arguments["priority"]
+        if "linked_task_id" in arguments:
+            body["linkedTaskID"] = arguments["linked_task_id"]
+        return body
+
+    @classmethod
+    def _job_role_patch(cls, arguments: dict[str, Any]) -> dict[str, Any]:
+        patch = cls._map_fields(arguments, {
+            "track": "track", "priority": "priority", "employer": "employer", "role": "role",
+            "stage": "stage", "linked_task_id": "linkedTaskID",
+        })
+        if "location" in arguments:
+            patch["location"] = cls._location(arguments["location"])
+        if "posting" in arguments:
+            patch["posting"] = cls._posting(arguments["posting"])
+        if "position" in arguments:
+            patch["position"] = cls._position(arguments["position"])
+        if "contacts" in arguments:
+            patch["contacts"] = cls._contacts(arguments["contacts"])
+        if "outreach" in arguments:
+            patch["outreach"] = cls._outreach(arguments["outreach"])
+        if "application" in arguments:
+            patch["application"] = cls._application(arguments["application"])
+        if "resume" in arguments:
+            patch["resume"] = cls._resume(arguments["resume"])
+        if "evidence" in arguments:
+            patch["evidence"] = cls._evidence(arguments["evidence"])
+        return patch
 
 
 def main() -> None:

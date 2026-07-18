@@ -319,17 +319,20 @@ public struct OwnwardSnapshot: Codable, Equatable, Sendable {
     public var boards: [Board]
     public var tasks: [TaskItem]
     public var referenceGroups: [CompletionReferenceGroup]
+    public var jobSearch: JobSearchWorkspace
 
     public init(
         schemaVersion: Int = 1,
         boards: [Board] = [],
         tasks: [TaskItem] = [],
-        referenceGroups: [CompletionReferenceGroup] = []
+        referenceGroups: [CompletionReferenceGroup] = [],
+        jobSearch: JobSearchWorkspace = .empty
     ) {
         self.schemaVersion = schemaVersion
         self.boards = boards
         self.tasks = tasks
         self.referenceGroups = referenceGroups
+        self.jobSearch = jobSearch
     }
 
     public static let empty = OwnwardSnapshot()
@@ -337,6 +340,28 @@ public struct OwnwardSnapshot: Codable, Equatable, Sendable {
     public func task(id: TaskID) -> TaskItem? { tasks.first { $0.id == id } }
     public func miniTask(id: MiniTaskID) -> MiniTask? {
         tasks.lazy.compactMap { $0.miniTasks.first { $0.id == id } }.first
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case schemaVersion, boards, tasks, referenceGroups, jobSearch
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        schemaVersion = try container.decodeIfPresent(Int.self, forKey: .schemaVersion) ?? 1
+        boards = try container.decodeIfPresent([Board].self, forKey: .boards) ?? []
+        tasks = try container.decodeIfPresent([TaskItem].self, forKey: .tasks) ?? []
+        referenceGroups = try container.decodeIfPresent([CompletionReferenceGroup].self, forKey: .referenceGroups) ?? []
+        jobSearch = try container.decodeIfPresent(JobSearchWorkspace.self, forKey: .jobSearch) ?? .empty
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(schemaVersion, forKey: .schemaVersion)
+        try container.encode(boards, forKey: .boards)
+        try container.encode(tasks, forKey: .tasks)
+        try container.encode(referenceGroups, forKey: .referenceGroups)
+        try container.encode(jobSearch, forKey: .jobSearch)
     }
 }
 

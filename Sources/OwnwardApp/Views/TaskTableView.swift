@@ -4,6 +4,7 @@ import OwnwardCore
 struct TaskTableView: View {
     @Bindable var model: AppModel
     @Environment(\.ownwardTheme) private var theme
+    @State private var collapsedGroups: Set<String> = []
 
     private let statusWidth: CGFloat = 110
     private let teamWidth: CGFloat = 150
@@ -25,9 +26,11 @@ struct TaskTableView: View {
                     if model.tableGrouping != .none {
                         groupHeader(group)
                     }
-                    ForEach(group.tasks) { task in
-                        tableRow(task)
-                        Divider().padding(.leading, CGFloat(model.tableTaskColumnWidth) + 24)
+                    if model.tableGrouping == .none || !collapsedGroups.contains(group.id) {
+                        ForEach(group.tasks) { task in
+                            tableRow(task)
+                            Divider().padding(.leading, CGFloat(model.tableTaskColumnWidth) + 24)
+                        }
                     }
                 }
             }
@@ -39,14 +42,26 @@ struct TaskTableView: View {
     }
 
     private func groupHeader(_ group: TaskGroup) -> some View {
-        HStack {
-            Text(group.title).font(theme.uiFont(11, weight: .semibold))
-            Text("\(group.tasks.count)").font(theme.metadataFont(9)).foregroundStyle(.secondary)
-            Spacer()
+        Button {
+            toggle(group.id)
+        } label: {
+            HStack(spacing: 7) {
+                Image(systemName: collapsedGroups.contains(group.id) ? "chevron.right" : "chevron.down")
+                    .font(theme.uiFont(9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 10)
+                Text(group.title).font(theme.uiFont(11, weight: .semibold))
+                Text("\(group.tasks.count)").font(theme.metadataFont(9)).foregroundStyle(.secondary)
+                Spacer()
+            }
+            .contentShape(Rectangle())
         }
+        .buttonStyle(.plain)
         .padding(.horizontal, 12)
         .frame(width: contentWidth, height: 32)
         .background(theme.ink.opacity(0.07))
+        .accessibilityLabel("\(group.title), \(group.tasks.count) tasks")
+        .accessibilityValue(collapsedGroups.contains(group.id) ? "Collapsed" : "Expanded")
     }
 
     private var contentWidth: CGFloat {
@@ -85,6 +100,7 @@ struct TaskTableView: View {
                 Text(task.miniTasks.isEmpty ? "—" : "\(task.completedMiniTaskCount)/\(task.miniTasks.count)")
                     .font(theme.metadataFont(10)).frame(width: checklistWidth, alignment: .leading)
                 Text((task.deadlineEnd ?? task.deadlineStart)?.formatted(date: .abbreviated, time: .omitted) ?? "—")
+                    .foregroundStyle(isOverdue(task) ? OwnwardTheme.destructive : .primary)
                     .frame(width: deadlineWidth, alignment: .leading)
             }
             .font(theme.uiFont(11))
@@ -95,5 +111,17 @@ struct TaskTableView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+    }
+
+    private func toggle(_ id: String) {
+        if collapsedGroups.contains(id) { collapsedGroups.remove(id) }
+        else { collapsedGroups.insert(id) }
+    }
+
+    private func isOverdue(_ task: TaskItem) -> Bool {
+        guard task.status != .done,
+              task.status != .discarded,
+              let dueDate = task.deadlineEnd ?? task.deadlineStart else { return false }
+        return Calendar.current.startOfDay(for: dueDate) < Calendar.current.startOfDay(for: Date())
     }
 }

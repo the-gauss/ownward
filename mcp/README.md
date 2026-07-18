@@ -11,7 +11,7 @@ Example MCP configuration:
   "mcpServers": {
     "ownward": {
       "command": "/usr/bin/python3",
-      "args": ["/Users/gauss/sandbox/ownward/mcp/ownward_mcp.py"]
+      "args": ["/Users/gauss/Library/Application Support/Ownward/Automation/ownward_mcp.py"]
     }
   }
 }
@@ -22,3 +22,15 @@ full task reads, team-aware task creation and updates, atomic Team/status/manual
 order moves, timeline shifting and edge resizing, structured link updates, categorized mini-tasks,
 bidirectional completion references, completion actions, and a dedicated
 `ownward_day_starter_context` tool.
+
+Job Search adds five tools used by the Weekly Canada Roles Search:
+
+- `ownward_job_search_context` returns every durable role and activity.
+- `ownward_list_job_roles` supports scope, track, stage, search, and sort filters.
+- `ownward_get_job_role` returns one complete record.
+- `ownward_upsert_job_role` inserts or refreshes verified research idempotently.
+- `ownward_update_job_role` updates user/application state and writes an activity.
+
+These tools intentionally contain no browsing, AI, fit scoring, or resume-writing
+logic. The scheduled task performs the reasoning; Ownward owns the durable data
+and native management interface.

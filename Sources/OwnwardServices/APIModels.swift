@@ -60,6 +60,104 @@ public struct DayStarterContext: Codable, Equatable, Sendable {
     }
 }
 
+public struct JobSearchContext: Codable, Equatable, Sendable {
+    public var generatedAt: Date
+    public var roles: [JobRole]
+    public var activities: [JobActivity]
+
+    public init(generatedAt: Date = Date(), roles: [JobRole], activities: [JobActivity]) {
+        self.generatedAt = generatedAt
+        self.roles = roles
+        self.activities = activities
+    }
+}
+
+public struct UpsertJobRoleRequest: Codable, Equatable, Sendable {
+    public var track: JobSearchTrack
+    public var priority: Int?
+    public var employer: String
+    public var role: String
+    public var location: JobLocation
+    public var posting: JobPosting
+    public var position: JobPositionDetails
+    public var contacts: [JobContact]
+    public var outreach: JobOutreach
+    public var application: JobApplication
+    public var resume: JobResume
+    public var evidence: [JobEvidence]
+    public var stage: JobStage
+    public var linkedTaskID: TaskID?
+
+    public init(
+        track: JobSearchTrack,
+        priority: Int? = nil,
+        employer: String,
+        role: String,
+        location: JobLocation = JobLocation(),
+        posting: JobPosting = JobPosting(),
+        position: JobPositionDetails = JobPositionDetails(),
+        contacts: [JobContact] = [],
+        outreach: JobOutreach = JobOutreach(),
+        application: JobApplication = JobApplication(),
+        resume: JobResume = JobResume(),
+        evidence: [JobEvidence] = [],
+        stage: JobStage = .researching,
+        linkedTaskID: TaskID? = nil
+    ) {
+        self.track = track
+        self.priority = priority
+        self.employer = employer
+        self.role = role
+        self.location = location
+        self.posting = posting
+        self.position = position
+        self.contacts = contacts
+        self.outreach = outreach
+        self.application = application
+        self.resume = resume
+        self.evidence = evidence
+        self.stage = stage
+        self.linkedTaskID = linkedTaskID
+    }
+
+    public func roleValue(at date: Date = Date()) -> JobRole {
+        JobRole(
+            track: track,
+            priority: priority,
+            employer: employer,
+            role: role,
+            location: location,
+            posting: posting,
+            position: position,
+            contacts: contacts,
+            outreach: outreach,
+            application: application,
+            resume: resume,
+            evidence: evidence,
+            stage: stage,
+            linkedTaskID: linkedTaskID,
+            createdAt: date,
+            updatedAt: date
+        )
+    }
+}
+
+public struct UpdateJobRoleRequest: Codable, Equatable, Sendable {
+    public var patch: JobRolePatch
+    public var activityKind: JobActivityKind
+    public var activityDetail: String
+
+    public init(
+        patch: JobRolePatch,
+        activityKind: JobActivityKind = .updated,
+        activityDetail: String = "Role updated."
+    ) {
+        self.patch = patch
+        self.activityKind = activityKind
+        self.activityDetail = activityDetail
+    }
+}
+
 public struct CreateTaskRequest: Codable, Sendable {
     public var boardID: BoardID
     public var title: String

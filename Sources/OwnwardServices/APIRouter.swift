@@ -34,6 +34,13 @@ public struct APIRouter: Sendable {
                     .filter { $0.status == .toDo || $0.status == .inProgress }
                     .sorted(by: taskPriority)
                 return .json(DayStarterContext(boards: snapshot.boards, tasks: tasks, referenceGroups: snapshot.referenceGroups))
+            case ("GET", "/v1/job-search/context"):
+                let workspace = await repository.snapshot().jobSearch
+                return .json(JobSearchContext(roles: workspace.roles, activities: workspace.activities))
+            case ("GET", "/v1/job-search/roles"):
+                return .json(filterJobRoles(in: await repository.snapshot(), query: request.query))
+            case ("POST", "/v1/job-search/roles/upsert"):
+                return try await upsertJobRole(from: request.body)
             case ("POST", "/v1/references"):
                 return try await createReference(from: request.body)
             case ("POST", "/v1/completion"):
@@ -44,7 +51,8 @@ public struct APIRouter: Sendable {
         } catch let error as DecodingError {
             return .error(status: 400, message: "Invalid JSON: \(error.localizedDescription)")
         } catch let error as DomainError {
-            return .error(status: 404, message: error.localizedDescription)
+            let status = error == .invalidBoardName || error == .boardAlreadyExists || error == .invalidJobRole ? 400 : 404
+            return .error(status: status, message: error.localizedDescription)
         } catch {
             return .error(status: 500, message: error.localizedDescription)
         }
@@ -52,6 +60,19 @@ public struct APIRouter: Sendable {
 
     private func handleParameterizedRoute(_ request: APIRequest) async throws -> APIResponse {
         let parts = request.path.split(separator: "/").map(String.init)
+        if parts.count == 4, parts[0] == "v1", parts[1] == "job-search", parts[2] == "roles" {
+            guard let uuid = UUID(uuidString: parts[3]) else { throw DomainError.jobRoleNotFound }
+            let id = JobRoleID(rawValue: uuid)
+            if request.method == "GET" {
+                guard let role = await repository.snapshot().jobSearch.role(id: id) else {
+                    throw DomainError.jobRoleNotFound
+                }
+                return .json(role)
+            }
+            if request.method == "PATCH" {
+                return try await updateJobRole(id: id, body: request.body)
+            }
+        }
         if parts.count == 3, parts[0] == "v1", parts[1] == "tasks", request.method == "GET" {
             guard let id = taskID(parts[2]), let task = await repository.snapshot().task(id: id) else {
                 throw DomainError.taskNotFound
@@ -135,6 +156,36 @@ public struct APIRouter: Sendable {
         return .json(createdTask, status: 201)
     }
 
+    private func upsertJobRole(from body: Data) async throws -> APIResponse {
+        let request = try JSONDecoder.api.decode(UpsertJobRoleRequest.self, from: body)
+        let incoming = request.roleValue()
+        let existed = await repository.snapshot().jobSearch.roles.contains {
+            $0.identity.matches(incoming.identity)
+        }
+        let snapshot = try await repository.mutate {
+            _ = try JobSearchEngine.upsert(incoming, in: &$0.jobSearch)
+        }
+        guard let role = snapshot.jobSearch.roles.first(where: { $0.identity.matches(incoming.identity) }) else {
+            throw DomainError.jobRoleNotFound
+        }
+        return .json(role, status: existed ? 200 : 201)
+    }
+
+    private func updateJobRole(id: JobRoleID, body: Data) async throws -> APIResponse {
+        let request = try JSONDecoder.api.decode(UpdateJobRoleRequest.self, from: body)
+        let snapshot = try await repository.mutate {
+            try JobSearchEngine.update(
+                id,
+                patch: request.patch,
+                activityKind: request.activityKind,
+                activityDetail: request.activityDetail,
+                in: &$0.jobSearch
+            )
+        }
+        guard let role = snapshot.jobSearch.role(id: id) else { throw DomainError.jobRoleNotFound }
+        return .json(role)
+    }
+
     private func updateTask(id: TaskID, body: Data) async throws -> APIResponse {
         let request = try JSONDecoder.api.decode(UpdateTaskRequest.self, from: body)
         let snapshot = try await repository.mutate { snapshot in
@@ -215,6 +266,21 @@ public struct APIRouter: Sendable {
             let teamMatches = query["team"].map { task.team?.localizedCaseInsensitiveCompare($0) == .orderedSame } ?? true
             return boardMatches && statusMatches && searchMatches && teamMatches
         }.sorted(by: taskPriority)
+    }
+
+    private func filterJobRoles(in snapshot: OwnwardSnapshot, query: [String: String]) -> [JobRole] {
+        let scope = query["scope"].flatMap(JobSearchScope.init(rawValue:)) ?? .all
+        let track = query["track"].flatMap(JobSearchTrack.init(rawValue:))
+        let sort = query["sort"].flatMap(JobSearchSort.init(rawValue:)) ?? .nextAction
+        let organized = JobSearchOrganizer.roles(
+            snapshot.jobSearch.roles,
+            scope: scope,
+            track: track,
+            search: query["search"] ?? "",
+            sort: sort
+        )
+        guard let stage = query["stage"].flatMap(JobStage.init(rawValue:)) else { return organized }
+        return organized.filter { $0.stage == stage }
     }
 
     private func taskPriority(_ lhs: TaskItem, _ rhs: TaskItem) -> Bool {

@@ -20,5 +20,6 @@ let package = Package(
         ),
         .testTarget(name: "OwnwardCoreTests", dependencies: ["OwnwardCore"]),
         .testTarget(name: "OwnwardServicesTests", dependencies: ["OwnwardServices", "OwnwardCore"]),
+        .testTarget(name: "OwnwardAppTests", dependencies: ["OwnwardApp", "OwnwardCore", "OwnwardServices"]),
     ]
 )

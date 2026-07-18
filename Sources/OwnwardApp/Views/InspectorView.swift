@@ -23,9 +23,8 @@ struct InspectorView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 10) {
                     Button { toggleDraftTask() } label: {
                         Image(systemName: draft.status == .done ? "checkmark.circle.fill" : "circle")
@@ -214,10 +213,7 @@ struct InspectorView: View {
                     Button("Save") { save() }.keyboardShortcut("s", modifiers: [.command])
                 }
                 .padding(14)
-                }
             }
-            .frame(width: geometry.size.width / model.zoomScale, height: geometry.size.height / model.zoomScale)
-            .scaleEffect(model.zoomScale, anchor: .topLeading)
         }
         .background(theme.isSystem ? AnyShapeStyle(.thinMaterial) : AnyShapeStyle(theme.surface))
         .onDisappear { save() }
