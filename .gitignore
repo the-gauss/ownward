@@ -1,0 +1,6 @@
+.build/
+dist/
+.DS_Store
+design-qa-artifacts/
+__pycache__/
+*.pyc

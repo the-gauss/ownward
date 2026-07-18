@@ -1,0 +1,362 @@
+{
+  "exportedAt": "2026-07-18T11:15:00+05:30",
+  "board": {
+    "id": "90f0f431-89ea-83dc-a148-87895e93e853",
+    "name": "Minkops Kanban",
+    "workstreams": [
+      "Tasks",
+      "Interview Prep",
+      "Books",
+      "Tutorials",
+      "Features Dump"
+    ]
+  },
+  "tasks": [
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "Ownward like feature",
+      "url": "https://app.notion.com/p/3a00f43189ea8006a2b3d31d85149c6c",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/3a00f43189ea8006a2b3d31d85149c6c as of 2026-07-17T05:44:44.305Z:\n<page url=\"https://app.notion.com/p/3a00f43189ea8006a2b3d31d85149c6c\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Ownward like feature\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/3a00f43189ea8006a2b3d31d85149c6c\"}\n</properties>\n<content>\n# Ownward\nA personal management app I wanted to create for myself to replace multiple third-party app-bloat (like Notion and ChatGPT’s scheduled tasks) for project, task, and personal management.\nThis will now be provided as a feature in Minkops\n</content>\n</page>",
+      "fetchedTitle": "Ownward like feature"
+    },
+    {
+      "date:Deadline:start": "2026-07-17",
+      "date:Deadline:end": "2026-08-27",
+      "date:Deadline:is_datetime": 0,
+      "Status": "In Progress",
+      "Team": "Interview Prep",
+      "Description": "",
+      "Name": "Leetcode DSA",
+      "url": "https://app.notion.com/p/de90f43189ea8354880c0180f48c9b3d",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/de90f43189ea8354880c0180f48c9b3d as of 2026-07-18T04:24:40.005Z:\n<page url=\"https://app.notion.com/p/de90f43189ea8354880c0180f48c9b3d\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Leetcode DSA\",\"Status\":\"In Progress\",\"Team\":\"Interview Prep\",\"date:Deadline:end\":\"2026-08-27\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-07-17\",\"url\":\"https://app.notion.com/p/de90f43189ea8354880c0180f48c9b3d\"}\n</properties>\n<content>\n# LeetCode Top Interview 150\n<empty-block/>\nPrevious DSA Theory section removed. DSA will now be learnt while solving these problems, learning new concepts, data structures, and patterns just in time as they are needed.\n## Math\n- [x] 9. Palindrome Number\n- [x] 66. Plus One\n- [ ] 172. Factorial Trailing Zeroes\n- [ ] 69. Sqrt(x)\n- [ ] 50. Pow(x, n)\n- [ ] 149. Max Points on a Line\n## Array / String\n- [ ] 88. Merge Sorted Array\n- [ ] 27. Remove Element\n- [ ] 26. Remove Duplicates from Sorted Array\n- [ ] 80. Remove Duplicates from Sorted Array II\n- [ ] 169. Majority Element\n- [ ] 189. Rotate Array\n- [ ] 121. Best Time to Buy and Sell Stock\n- [ ] 122. Best Time to Buy and Sell Stock II\n- [ ] 55. Jump Game\n- [ ] 45. Jump Game II\n- [ ] 274. H-Index\n- [ ] 380. Insert Delete GetRandom O(1)\n- [ ] 238. Product of Array Except Self\n- [ ] 134. Gas Station\n- [ ] 135. Candy\n- [ ] 42. Trapping Rain Water\n- [ ] 13. Roman to Integer\n- [ ] 12. Integer to Roman\n- [ ] 58. Length of Last Word\n- [ ] 14. Longest Common Prefix\n- [ ] 151. Reverse Words in a String\n- [ ] 6. Zigzag Conversion\n- [ ] 28. Find the Index of the First Occurrence in a String\n- [ ] 68. Text Justification\n---\n## Two Pointers\n- [ ] 125. Valid Palindrome\n- [ ] 392. Is Subsequence\n- [ ] 167. Two Sum II – Input Array Is Sorted\n- [ ] 11. Container With Most Water\n- [ ] 15. 3Sum\n---\n## Sliding Window\n- [ ] 209. Minimum Size Subarray Sum\n- [ ] 3. Longest Substring Without Repeating Characters\n- [ ] 30. Substring with Concatenation of All Words\n- [ ] 76. Minimum Window Substring\n---\n## Matrix\n- [ ] 36. Valid Sudoku\n- [ ] 54. Spiral Matrix\n- [ ] 48. Rotate Image\n- [ ] 73. Set Matrix Zeroes\n- [ ] 289. Game of Life\n---\n## Hashmap\n- [ ] 383. Ransom Note\n- [ ] 205. Isomorphic Strings\n- [ ] 290. Word Pattern\n- [ ] 242. Valid Anagram\n- [ ] 49. Group Anagrams\n- [ ] 1. Two Sum\n- [ ] 202. Happy Number\n- [ ] 219. Contains Duplicate II\n- [ ] 128. Longest Consecutive Sequence\n---\n## Intervals\n- [ ] 228. Summary Ranges\n- [ ] 56. Merge Intervals\n- [ ] 57. Insert Interval\n- [ ] 452. Minimum Number of Arrows to Burst Balloons\n---\n## Stack\n- [ ] 20. Valid Parentheses\n- [ ] 71. Simplify Path\n- [ ] 155. Min Stack\n- [ ] 150. Evaluate Reverse Polish Notation\n- [ ] 224. Basic Calculator\n---\n## Linked List\n- [ ] 141. Linked List Cycle\n- [ ] 2. Add Two Numbers\n- [ ] 21. Merge Two Sorted Lists\n- [ ] 138. Copy List with Random Pointer\n- [ ] 92. Reverse Linked List II\n- [ ] 25. Reverse Nodes in k-Group\n- [ ] 19. Remove Nth Node From End of List\n- [ ] 82. Remove Duplicates from Sorted List II\n- [ ] 61. Rotate List\n- [ ] 86. Partition List\n- [ ] 146. LRU Cache\n---\n## Binary Tree General\n- [ ] 104. Maximum Depth of Binary Tree\n- [ ] 100. Same Tree\n- [ ] 226. Invert Binary Tree\n- [ ] 101. Symmetric Tree\n- [ ] 105. Construct Binary Tree from Preorder and Inorder Traversal\n- [ ] 106. Construct Binary Tree from Inorder and Postorder Traversal\n- [ ] 117. Populating Next Right Pointers in Each Node II\n- [ ] 114. Flatten Binary Tree to Linked List\n- [ ] 112. Path Sum\n- [ ] 129. Sum Root to Leaf Numbers\n- [ ] 124. Binary Tree Maximum Path Sum\n- [ ] 173. Binary Search Tree Iterator\n- [ ] 222. Count Complete Tree Nodes\n- [ ] 236. Lowest Common Ancestor of a Binary Tree\n---\n## Binary Tree BFS\n- [ ] 199. Binary Tree Right Side View\n- [ ] 637. Average of Levels in Binary Tree\n- [ ] 102. Binary Tree Level Order Traversal\n- [ ] 103. Binary Tree Zigzag Level Order Traversal\n---\n## Binary Search Tree\n- [ ] 530. Minimum Absolute Difference in BST\n- [ ] 230. Kth Smallest Element in a BST\n- [ ] 98. Validate Binary Search Tree\n---\n## Graph General\n- [ ] 200. Number of Islands\n- [ ] 130. Surrounded Regions\n- [ ] 133. Clone Graph\n- [ ] 399. Evaluate Division\n- [ ] 207. Course Schedule\n- [ ] 210. Course Schedule II\n---\n## Graph BFS\n- [ ] 909. Snakes and Ladders\n- [ ] 433. Minimum Genetic Mutation\n- [ ] 127. Word Ladder\n---\n## Trie\n- [ ] 208. Implement Trie (Prefix Tree)\n- [ ] 211. Design Add and Search Words Data Structure\n- [ ] 212. Word Search II\n---\n## Backtracking\n- [ ] 17. Letter Combinations of a Phone Number\n- [ ] 77. Combinations\n- [ ] 46. Permutations\n- [ ] 39. Combination Sum\n- [ ] 52. N-Queens II\n- [ ] 22. Generate Parentheses\n- [ ] 79. Word Search\n---\n## Divide & Conquer\n- [ ] 108. Convert Sorted Array to Binary Search Tree\n- [ ] 148. Sort List\n- [ ] 427. Construct Quad Tree\n- [ ] 23. Merge k Sorted Lists\n---\n## Kadane’s Algorithm\n- [ ] 53. Maximum Subarray\n- [ ] 918. Maximum Sum Circular Subarray\n---\n## Binary Search\n- [ ] 35. Search Insert Position\n- [ ] 74. Search a 2D Matrix\n- [ ] 162. Find Peak Element\n- [ ] 33. Search in Rotated Sorted Array\n- [ ] 34. Find First and Last Position of Element in Sorted Array\n- [ ] 153. Find Minimum in Rotated Sorted Array\n- [ ] 4. Median of Two Sorted Arrays\n---\n## Heap\n- [ ] 215. Kth Largest Element in an Array\n- [ ] 502. IPO\n- [ ] 373. Find K Pairs with Smallest Sums\n- [ ] 295. Find Median from Data Stream\n---\n## Bit Manipulation\n- [ ] 67. Add Binary\n- [ ] 190. Reverse Bits\n- [ ] 191. Number of 1 Bits\n- [ ] 136. Single Number\n- [ ] 137. Single Number II\n- [ ] 201. Bitwise AND of Numbers Range\n---\n## 1D DP\n- [ ] 70. Climbing Stairs\n- [ ] 198. House Robber\n- [ ] 139. Word Break\n- [ ] 322. Coin Change\n- [ ] 300. Longest Increasing Subsequence\n---\n## Multidimensional DP\n- [ ] 120. Triangle\n- [ ] 64. Minimum Path Sum\n- [ ] 63. Unique Paths II\n- [ ] 5. Longest Palindromic Substring\n- [ ] 97. Interleaving String\n- [ ] 72. Edit Distance\n- [ ] 123. Best Time to Buy and Sell Stock III\n- [ ] 188. Best Time to Buy and Sell Stock IV\n- [ ] 221. Maximal Square\n</content>\n</page>",
+      "fetchedTitle": "Leetcode DSA"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Tasks",
+      "Description": "",
+      "Name": "Ongoing Maintenance",
+      "url": "https://app.notion.com/p/afc0f43189ea8385994b01f1adfd5976",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/afc0f43189ea8385994b01f1adfd5976 as of 2026-07-08T07:31:57.916Z:\n<page url=\"https://app.notion.com/p/afc0f43189ea8385994b01f1adfd5976\" icon=\"🧹\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Ongoing Maintenance\",\"Status\":\"To Do\",\"Team\":\"Tasks\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/afc0f43189ea8385994b01f1adfd5976\"}\n</properties>\n<content>\n- [x] Fix Pylance issues from all modules\n- [ ] Database changes\n\t- [ ] No model name field (e.g. gemini, claude, etc) for runs/agents\n\t- [ ] Make sure the synthetic/analytics tables reflect SaaS\n\t- [ ] Add an `updated_at` field in the `tenants` table\n\t- [ ] Fix schemas (deep think) - not everything should be in public schema\n- [ ] Implement and Learn Pydantic (manual)\n- [ ] Implement SQLAlchemy instead of `psycopg2`\n- [ ] Implement a `dead` row alert system with PostgreSQL’s LISTEN etc.\n---\nPause here.\n- [ ] Modularity: Implement Separation-of-Concerns ruthlessly\n- [ ] Implement Multi-modal embeddings for images (optional for prod)\n- [ ] Implement Actor-Critique/Agentic (make more AI) workflows instead of DAG style (VERY LATER).\n</content>\n</page>",
+      "fetchedTitle": "🧹 Ongoing Maintenance"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "RAG+Agentic Project",
+      "url": "https://app.notion.com/p/2b80f43189ea8204974e814d3dc65cdc",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/2b80f43189ea8204974e814d3dc65cdc as of 2026-07-08T07:31:56.205Z:\n<page url=\"https://app.notion.com/p/2b80f43189ea8204974e814d3dc65cdc\" icon=\"icons/move-document_blue\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"RAG+Agentic Project\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/2b80f43189ea8204974e814d3dc65cdc\"}\n</properties>\n<content>\nInterview Project 3\nMLOps\n</content>\n</page>",
+      "fetchedTitle": "RAG+Agentic Project"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "Clients KB",
+      "url": "https://app.notion.com/p/83c0f43189ea82c687a5018814664b69",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/83c0f43189ea82c687a5018814664b69 as of 2026-07-17T15:38:30.728Z:\n<page url=\"https://app.notion.com/p/83c0f43189ea82c687a5018814664b69\" icon=\"icons/book-closed_pink\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Clients KB\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/83c0f43189ea82c687a5018814664b69\"}\n</properties>\n<content>\nIndustry standard data-store(s) for Minkops’ clients:\n- [ ] Myndral\n- [ ] Pradeepraj Infra\n- [ ] MH\n- [ ] Lior Solan\n<empty-block/>\n</content>\n</page>",
+      "fetchedTitle": "Clients KB"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "Connectors",
+      "url": "https://app.notion.com/p/0730f43189ea8230904f01039d5a46fe",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/0730f43189ea8230904f01039d5a46fe as of 2026-07-08T07:31:42.120Z:\n<page url=\"https://app.notion.com/p/0730f43189ea8230904f01039d5a46fe\" icon=\"⭐\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Connectors\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/0730f43189ea8230904f01039d5a46fe\"}\n</properties>\n<content>\n- [ ] [What is the Model Context Protocol (MCP)? - Model Context Protocol](https://modelcontextprotocol.io/docs/getting-started/intro)\n<empty-block/>\n- Connectors schema and metadata (e.g., which Notion database contains, kind of index) per tenant \n- Start Minimum Viable connectors - e.g. Notion, Gmail, etc. (Shopify store owners are our first target)\n<empty-block/>\n</content>\n</page>",
+      "fetchedTitle": "⭐ Connectors"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Done",
+      "Team": "Tasks",
+      "Description": "",
+      "Name": "Shared Capabilities 1",
+      "url": "https://app.notion.com/p/df90f43189ea827fb30381ebe02dd4d4",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/df90f43189ea827fb30381ebe02dd4d4 as of 2026-07-08T07:31:32.199Z:\n<page url=\"https://app.notion.com/p/df90f43189ea827fb30381ebe02dd4d4\" icon=\"icons/database_blue\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Shared Capabilities 1\",\"Status\":\"Done\",\"Team\":\"Tasks\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/df90f43189ea827fb30381ebe02dd4d4\"}\n</properties>\n<content>\n- [x] In One Focus Zone: Understand all the working of the new architecture\n\t- [x] Mental Map `ai-suite`/\n\t- [x] Mental Map `agents/`\n- [x] Test the Workflow for Imel\n\t- [x] Fix the bugs \\[3-hour no-AI slot\\]\n\t- [x] Run a successful test run on Imel\n<empty-block/>\n</content>\n</page>",
+      "fetchedTitle": "Shared Capabilities 1"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "Social Media Handler",
+      "url": "https://app.notion.com/p/da10f43189ea83b5aee181bb0e9ea712",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/da10f43189ea83b5aee181bb0e9ea712 as of 2026-07-08T07:31:23.577Z:\n<page url=\"https://app.notion.com/p/da10f43189ea83b5aee181bb0e9ea712\" icon=\"💬\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Social Media Handler\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/da10f43189ea83b5aee181bb0e9ea712\"}\n</properties>\n<content>\n[Claude Code Just Changed Content Creation Forever (full-guide)](https://youtu.be/GSnKzuy-byk)\n**Configurable Options**\n- [ ] Meta Business Suite\n- [ ] Instagram\n- [ ] Facebook\n- [ ] LinkedIn\n</content>\n</page>",
+      "fetchedTitle": "💬 Social Media Handler"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "Content Creator",
+      "url": "https://app.notion.com/p/9f80f43189ea8214bcb48196cd914b30",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/9f80f43189ea8214bcb48196cd914b30 as of 2026-07-08T07:31:16.926Z:\n<page url=\"https://app.notion.com/p/9f80f43189ea8214bcb48196cd914b30\" icon=\"🎬\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Content Creator\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/9f80f43189ea8214bcb48196cd914b30\"}\n</properties>\n<content>\n- [ ] NanoBanana Image Generation for intermediate images/parts of ads\n- [ ] HTML+CSS generation for emails and ad copies\n- [ ] (optional) Open source model fine-tunable on company images and RLHF training ready\n</content>\n</page>",
+      "fetchedTitle": "🎬 Content Creator"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Tasks",
+      "Description": "",
+      "Name": "Agent Platform",
+      "url": "https://app.notion.com/p/d250f43189ea839eb6cc81f02ea323f0",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/d250f43189ea839eb6cc81f02ea323f0 as of 2026-07-17T15:29:40.622Z:\n<page url=\"https://app.notion.com/p/d250f43189ea839eb6cc81f02ea323f0\" icon=\"🌐\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Agent Platform\",\"Status\":\"To Do\",\"Team\":\"Tasks\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/d250f43189ea839eb6cc81f02ea323f0\"}\n</properties>\n<content>\n### Read before every session\n- React (Codex) + FastAPI (Handcode)\n‼️Handcode just enough to be confident. Handcode at least enough to be confident. Then velocity.\n‼️‼️ The biggest bottleneck is aimless roaming \n‼️‼️ **START BY PLANNING THIS SESSION, STRICTLY TIMEBOX GOALS AND AIM TO FINISH !!**\n‼️ Make Unit tests and Logging a default for all projects\n---\n- S***ATURDAYS - Weekly verbal walkthrough of changes/major decisions and whiteboarding.***\n- Whole day’s learning into Practice first, then following (Remember the goal is shipping with zero debt)\n<empty-block/>\n- [x] Make DATES and TITLES Consistent across Resume, LinkedIn, Company docs. Finalize SWE+DE Resume and LinkedIn\n- [x] Edit the database\n\t- [x] Study the current seed file and fully understand SQL + Mental Map + Design Choices\n\t- [x] Separate init seed file and schema seed file\n\t- [x] Study the Human-Agent Queue notes in Obsidian\n\t- [x] Implement the plan\n\t- [x] Status `dead` alert system\n- [x] Login page first or Dashboard page first? Database changes?\n- [ ] Paper-Pen drafting — all features, architecture, design of the MVP\n- [ ] Login Page\n- [ ] Dashboard page\n\t- [ ] Routes\n\t- [ ] Connect to database to retrieve data from `tenants` table.\n\t- [ ] Use `curl` for testing\n- [ ] Worker Process\n\t- [x] Watch [The Outbox Pattern is seriously underrated...](https://youtu.be/7Js-4GuNogM?si=x1Z5yX5HP4vyhBVe)\n\t- [ ] Deeply Understand the concept + “How to Introduce Workers” in “Event Outbox” in Obsidian\n\t- [ ] Implement `ai-suite/workers`\n- [ ] Multi-threading/Multi-processing/Async practice - check Obsidian+more. This is important.\n- [ ] Glue in `docker compose` to run 1 task end to end - a simple Imel task\n\t- [ ] 1. User creates a task in dashboard (either One time tasks, like create a post, or Running tasks, like check emails and respond as they arrive)\n\t- [ ] 2. Agents pick up the task from an outbox/queue, perform AI, and send further actions to `EventOutbox`\n\t- [ ] 3. `ai-suite` picks the side effect from `EventOutbox` and performs the task. As soon as it’s done, dashboard shows completed.\n- [ ] Implement GitHub Actions CI/CD\n\t- [ ] Take care of prerequisites like App, Hosting, etc.\n- [ ] Brainstorm and implement one K8s flow end-to-end\n- [ ] Write (and learn) tests - production style\n- [ ] [How to Design a RAG Pipeline for 10 Million Documents with Zero Hallucination ( Live Demo )](https://medium.com/@visrow/how-to-design-a-rag-pipeline-for-10-million-documents-with-zero-hallucination-live-demo-057e37bcdbf6)\n<empty-block/>\n</content>\n</page>",
+      "fetchedTitle": "🌐 Agent Platform"
+    },
+    {
+      "date:Deadline:start": "2026-07-21",
+      "date:Deadline:end": "2026-07-25",
+      "date:Deadline:is_datetime": 0,
+      "Status": "In Progress",
+      "Description": "",
+      "Name": "Job Search Ready",
+      "url": "https://app.notion.com/p/0880f43189ea82aa8d56817859c84cdb",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/0880f43189ea82aa8d56817859c84cdb as of 2026-07-17T15:26:30.132Z:\n<page url=\"https://app.notion.com/p/0880f43189ea82aa8d56817859c84cdb\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Job Search Ready\",\"Status\":\"In Progress\",\"date:Deadline:end\":\"2026-07-25\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-07-21\",\"url\":\"https://app.notion.com/p/0880f43189ea82aa8d56817859c84cdb\"}\n</properties>\n<content>\n<empty-block/>\n-\n- [ ] Documents\n\t- [x] Universe Bible\n\t- [x] Customer Acquistion Deck Slides - Photos Pending\n\t- [x] Highly transparent compayn addres and contact info on Myndral website\n\t- [x] New address on all other websites\n- [x] Finalize Business Register\n\t- [x] DUNS - done, waiting.\n\t- [x] Other steps Gemini - done, waiting.\n\t- [x] Apple Dev ID verification  - done, waiting.\n- [ ] Definitive believable storyline since Jan 2026 - WITH EXTENDED THINKING MODE - High Detail — Understand all resumes WORD BY WORD and plan projects/stories around them - Be Transparent about being a founder\n- [ ] GitHub/project evidence (think of a way of showing without revealing the repo itself)\n- [x] Google Workspace Aliases and Mailboxes missaligned - fix them\n\t- [x] Start with test emails for each address/mailbox\n- [ ] Docs/Paper trail\n\t- [ ] Pradeepraj Infra Offer Letter\n\t- [ ] Pradeepraj Infra Experience Letter\n\t- [ ] Pradeepraj Infra Salary Slips — first and last month\n\t- [ ] Minkops (decide now) docs signed by co-founder\n- [ ] Social Proof\n- [ ] Business Bank Account\\*\n- [ ] a **public technical case study** that gives enough implementation detail without leaking private code. This can include architecture diagrams, schema snippets, sample dbt model names, synthetic SQL examples, anonymized dashboard screenshots, pipeline descriptions, data quality checks, and design trade-offs.\n- [ ] Prepare all four ventures for final credibility\n\t- [ ] Business Address\n\t- [ ] Register Business\n\t- [ ] Setup Professional-grade final Website for MH\n\t- [ ] Setup Production-grade final website for Minkops\n\t- [ ] Minkops agent platform is super-important, but it’s ongoing.\n- [All Data Engineering Interviews Explained!](https://youtu.be/jdrwZfeTd-o?si=SAHADaOCd0fCvgmF)\n<page url=\"https://app.notion.com/p/8260f43189ea826ca698019783091345\">Job Search Sites</page>\n- Find Hiring manager’s name, then cold email them on company email - Either find the domain of other easy-to-target person working there, or guess the domain.\n- LinkedIn Experience: First, Data Engineer building foundations of MH \\> Then, Lead AI Engineer building MinkOps \n- Platforms:\n\t- AngelList\n\t- Wellfound\n\t- Job bank ca\n\t- Indeed\n\t- Databricks and dbt Labs job board\n- MOCK INTERVIEWS\n\t- Super important: Must do!\n\t- Practice speaking at length, speaking industry terms, and speaking accent\n\t- Ruthlessly practice the SAR Schema\n\t- Prepare re-usable stories, scenarios, case studies with **constraints, deadlines, performance **focus. Don’t tell features, tell problems and solutions.\n</content>\n</page>",
+      "fetchedTitle": "Job Search Ready"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Done",
+      "Team": "Tasks",
+      "Description": "",
+      "Name": "Imel Basics of Langgraph",
+      "url": "https://app.notion.com/p/b440f43189ea8304982e015afce5f2a7",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/b440f43189ea8304982e015afce5f2a7 as of 2026-07-08T07:30:58.930Z:\n<page url=\"https://app.notion.com/p/b440f43189ea8304982e015afce5f2a7\" icon=\"📩\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Imel Basics of Langgraph\",\"Status\":\"Done\",\"Team\":\"Tasks\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/b440f43189ea8304982e015afce5f2a7\"}\n</properties>\n<content>\n<empty-block/>\n**‼️Every check-list item should end in a verifiable output, not just code.**\n**‼️Each check-list item is to time-boxed for 1 hour. Attempt to finish in one hour.**\n<empty-block/>\n- [x] Draft an MVP Architecture\n- [x] Define Persona and Policy\n- [x] Define Nodes\n- [x] Summarize Imel - How and Why everything works - Generalize the flow for a general agent\n- [x] Refactor as per “Thinking in Langgraph” (Command\\[\\] etc) - no use of AI\n- [x] Code the Graph\n- [x] Design temporary Database in Postgres after Data Modelling Masterclass\n\t- [ ] Either for MH, or\n\t- [x] Minkops\n- [x] Boilerplate INSERT INTO DB + Understand the last two parts of “Move from DB to DWH”.\n- [x] Create a Vector Database using pgvector for MH. Watch the Vector DB video in the 01-[Vector Database](/p/b8b0f43189ea8316bf3401af50aaa591?pvs=25) page.\n\t- [x] For each tenant, divide between a relational data part, a file/S3 part, and a vector/embedding part (no need to be disjoint); and decide new tables/schema to create/modify\n- [x] Modify the `company_kb_lookup` node to use a vector store\n- [x] Read and understand and summarize all the vector store related changes (ALL CODE)\n- [x] ⭐️ System Design Refactoring (NEEDS HIGH-FOCUS ZONES)\n\t- [x] Redefine Nodes on the graph\n\t- [x] Summarize layers manually (Separate agent-specs vs shared capabilities from existing Imel)\n\t- [x] Read the Refactoring Guide in Obsidian\n\t- [x] Read Refactoring guide and cleanup `tools.py\\``\n\t- [x] Refactor all code to separate [Shared Capabilities](/p/df90f43189ea827fb30381ebe02dd4d4?pvs=25) (Manually first)\n\t- [x] Implement Langgraph’s `Command` instead of poor `route_by_intent_node`\n\t- [x] Study last Anti-gravity chat and log into Obsidian\n\t- [x] Thoroughly study the new architecture, and create a detailed documentable architecture diagram (one flowchart, and one layers diagram)\n</content>\n</page>",
+      "fetchedTitle": "📩 Imel Basics of Langgraph"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "Observability",
+      "url": "https://app.notion.com/p/c540f43189ea829e8c5d813fd2596249",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/c540f43189ea829e8c5d813fd2596249 as of 2026-07-17T15:36:15.776Z:\n<page url=\"https://app.notion.com/p/c540f43189ea829e8c5d813fd2596249\" icon=\"👀\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Observability\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/c540f43189ea829e8c5d813fd2596249\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "👀 Observability"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Done",
+      "Team": "Tasks",
+      "Description": "",
+      "Name": "Vector Database",
+      "url": "https://app.notion.com/p/b8b0f43189ea8316bf3401af50aaa591",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/b8b0f43189ea8316bf3401af50aaa591 as of 2026-07-08T07:30:46.288Z:\n<page url=\"https://app.notion.com/p/b8b0f43189ea8316bf3401af50aaa591\" icon=\"icons/database_yellow\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Vector Database\",\"Status\":\"Done\",\"Team\":\"Tasks\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/b8b0f43189ea8316bf3401af50aaa591\"}\n</properties>\n<content>\n- [x] [PGVector: Turn PostgreSQL Into A Vector Database](https://www.youtube.com/watch?v=j1QcPSLj7u0)\npgvector (vectors) + Postgres (metadata/source-of-truth) + object storage (raw docs).\n</content>\n</page>",
+      "fetchedTitle": "Vector Database"
+    },
+    {
+      "date:Deadline:start": "2026-05-03",
+      "date:Deadline:end": "2026-05-12",
+      "date:Deadline:is_datetime": 0,
+      "Status": "Done",
+      "Description": "",
+      "Name": "BREAK",
+      "url": "https://app.notion.com/p/ab20f43189ea83409025018ee41cc319",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/ab20f43189ea83409025018ee41cc319 as of 2026-07-08T07:30:40.741Z:\n<page url=\"https://app.notion.com/p/ab20f43189ea83409025018ee41cc319\" icon=\"✈️\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"BREAK\",\"Status\":\"Done\",\"date:Deadline:end\":\"2026-05-12\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-05-03\",\"url\":\"https://app.notion.com/p/ab20f43189ea83409025018ee41cc319\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "✈️ BREAK"
+    },
+    {
+      "date:Deadline:start": "2026-07-11",
+      "date:Deadline:end": "2026-08-05",
+      "date:Deadline:is_datetime": 0,
+      "Status": "In Progress",
+      "Team": "Interview Prep",
+      "Description": "",
+      "Name": "Leetcode SQL",
+      "url": "https://app.notion.com/p/c560f43189ea83538c2301154ac3c738",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/c560f43189ea83538c2301154ac3c738 as of 2026-07-14T15:41:03.156Z:\n<page url=\"https://app.notion.com/p/c560f43189ea83538c2301154ac3c738\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Leetcode SQL\",\"Status\":\"In Progress\",\"Team\":\"Interview Prep\",\"date:Deadline:end\":\"2026-08-05\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-07-11\",\"url\":\"https://app.notion.com/p/c560f43189ea83538c2301154ac3c738\"}\n</properties>\n<content>\n# SQL 50 + Advanced SQL 50 \n‼️ Learning SQL and relevant quick start has to happen WITH problems! No separate theory first sections.\n## Part 2 — SQL Foundations: Writing Correct and Idiomatic Queries\n### Easy\n- [x] \\[S\\] [1757 — Recyclable and Low Fat Products](https://leetcode.com/problems/recyclable-and-low-fat-products/)\n- [x] \\[S\\] [584 — Find Customer Referee](https://leetcode.com/problems/find-customer-referee/)\n- [x] \\[S\\] [595 — Big Countries](https://leetcode.com/problems/big-countries/)\n- [x] \\[S\\] [1148 — Article Views I](https://leetcode.com/problems/article-views-i/)\n- [x] \\[S\\] [1683 — Invalid Tweets](https://leetcode.com/problems/invalid-tweets/)\n- [x] \\[S\\] [1378 — Replace Employee ID With The Unique Identifier](https://leetcode.com/problems/replace-employee-id-with-the-unique-identifier/)\n- [x] \\[S\\] [1068 — Product Sales Analysis I](https://leetcode.com/problems/product-sales-analysis-i/)\n- [x] \\[S\\] [197 — Rising Temperature](https://leetcode.com/problems/rising-temperature/)\n- [ ] \\[S\\] [1661 — Average Time of Process per Machine](https://leetcode.com/problems/average-time-of-process-per-machine/)\n- [ ] \\[S\\] [577 — Employee Bonus](https://leetcode.com/problems/employee-bonus/)\n- [ ] \\[S\\] [1280 — Students and Examinations](https://leetcode.com/problems/students-and-examinations/)\n- [ ] \\[S\\] [620 — Not Boring Movies](https://leetcode.com/problems/not-boring-movies/)\n- [ ] \\[S\\] [1251 — Average Selling Price](https://leetcode.com/problems/average-selling-price/)\n- [ ] \\[S\\] [1075 — Project Employees I](https://leetcode.com/problems/project-employees-i/)\n- [ ] \\[S\\] [1633 — Percentage of Users Attended a Contest](https://leetcode.com/problems/percentage-of-users-attended-a-contest/)\n- [ ] \\[S\\] [2356 — Number of Unique Subjects Taught by Each Teacher](https://leetcode.com/problems/number-of-unique-subjects-taught-by-each-teacher/)\n- [ ] \\[S\\] [1141 — User Activity for the Past 30 Days I](https://leetcode.com/problems/user-activity-for-the-past-30-days-i/)\n- [ ] \\[S\\] [596 — Classes More Than 5 Students](https://leetcode.com/problems/classes-more-than-5-students/)\n- [ ] \\[S\\] [1729 — Find Followers Count](https://leetcode.com/problems/find-followers-count/)\n- [ ] \\[S\\] [1731 — The Number of Employees Which Report to Each Employee](https://leetcode.com/problems/the-number-of-employees-which-report-to-each-employee/)\n- [ ] \\[S\\] [1789 — Primary Department for Each Employee](https://leetcode.com/problems/primary-department-for-each-employee/)\n- [ ] \\[S\\] [610 — Triangle Judgement](https://leetcode.com/problems/triangle-judgement/)\n- [ ] \\[S\\] [196 — Delete Duplicate Emails](https://leetcode.com/problems/delete-duplicate-emails/)\n- [ ] \\[S\\] [1327 — List the Products Ordered in a Period](https://leetcode.com/problems/list-the-products-ordered-in-a-period/)\n- [ ] \\[A\\] [1821 — Find Customers With Positive Revenue This Year](https://leetcode.com/problems/find-customers-with-positive-revenue-this-year/)\n- [ ] \\[A\\] [1873 — Calculate Special Bonus](https://leetcode.com/problems/calculate-special-bonus/)\n- [ ] \\[A\\] [175 — Combine Two Tables](https://leetcode.com/problems/combine-two-tables/)\n- [ ] \\[A\\] [1407 — Top Travellers](https://leetcode.com/problems/top-travellers/)\n- [ ] \\[A\\] [1890 — The Latest Login in 2020](https://leetcode.com/problems/the-latest-login-in-2020/)\n- [ ] \\[A\\] [511 — Game Play Analysis I](https://leetcode.com/problems/game-play-analysis-i/)\n- [ ] \\[A\\] [1571 — Warehouse Manager](https://leetcode.com/problems/warehouse-manager/)\n- [ ] \\[A\\] [586 — Customer Placing the Largest Number of Orders](https://leetcode.com/problems/customer-placing-the-largest-number-of-orders/)\n- [ ] \\[A\\] [1741 — Find Total Time Spent by Each Employee](https://leetcode.com/problems/find-total-time-spent-by-each-employee/)\n- [ ] \\[A\\] [1173 — Immediate Food Delivery I](https://leetcode.com/problems/immediate-food-delivery-i/)\n- [ ] \\[A\\] [1587 — Bank Account Summary II](https://leetcode.com/problems/bank-account-summary-ii/)\n- [ ] \\[A\\] [182 — Duplicate Emails](https://leetcode.com/problems/duplicate-emails/)\n- [ ] \\[A\\] [1050 — Actors and Directors Who Cooperated At Least Three Times](https://leetcode.com/problems/actors-and-directors-who-cooperated-at-least-three-times/)\n- [ ] \\[A\\] [1693 — Daily Leads and Partners](https://leetcode.com/problems/daily-leads-and-partners/)\n- [ ] \\[A\\] [603 — Consecutive Available Seats](https://leetcode.com/problems/consecutive-available-seats/)\n- [ ] \\[A\\] [1795 — Rearrange Products Table](https://leetcode.com/problems/rearrange-products-table/)\n- [ ] \\[A\\] [613 — Shortest Distance in a Line](https://leetcode.com/problems/shortest-distance-in-a-line/)\n### Medium\n- [x] \\[S\\] [1934 — Confirmation Rate](https://leetcode.com/problems/confirmation-rate/)\n- [ ] \\[S\\] [1211 — Queries Quality and Percentage](https://leetcode.com/problems/queries-quality-and-percentage/)\n- [ ] \\[S\\] [1193 — Monthly Transactions I](https://leetcode.com/problems/monthly-transactions-i/)\n- [ ] \\[S\\] [1907 — Count Salary Categories](https://leetcode.com/problems/count-salary-categories/)\n- [ ] \\[S\\] [1341 — Movie Rating](https://leetcode.com/problems/movie-rating/)\n- [ ] \\[A\\] [1440 — Evaluate Boolean Expression](https://leetcode.com/problems/evaluate-boolean-expression/)\n- [ ] \\[A\\] [1212 — Team Scores in Football Tournament](https://leetcode.com/problems/team-scores-in-football-tournament/)\n- [ ] \\[A\\] [1445 — Apples & Oranges](https://leetcode.com/problems/apples-oranges/)\n- [ ] \\[A\\] [1699 — Number of Calls Between Two Persons](https://leetcode.com/problems/number-of-calls-between-two-persons/)\n- [ ] \\[A\\] [1511 — Customer Order Frequency](https://leetcode.com/problems/customer-order-frequency/)\n- [ ] \\[A\\] [1783 — Grand Slam Titles](https://leetcode.com/problems/grand-slam-titles/)\n- [ ] \\[A\\] [1747 — LeetFlex Banned Accounts](https://leetcode.com/problems/leetflex-banned-accounts/)\n---\n## Part 3 — CTEs and Subqueries\n### Easy\n- [x] \\[S\\] [1581 — Customer Who Visited but Did Not Make Any Transactions](https://leetcode.com/problems/customer-who-visited-but-did-not-make-any-transactions/)\n- [ ] \\[S\\] [1978 — Employees Whose Manager Left the Company](https://leetcode.com/problems/employees-whose-manager-left-the-company/)\n- [ ] \\[A\\] [183 — Customers Who Never Order](https://leetcode.com/problems/customers-who-never-order/)\n- [ ] \\[A\\] [1607 — Sellers with No Sales](https://leetcode.com/problems/sellers-with-no-sales/)\n- [ ] \\[A\\] [607 — Sales Person](https://leetcode.com/problems/sales-person/)\n- [ ] \\[A\\] [1965 — Employees with Missing Information](https://leetcode.com/problems/employees-with-missing-information/)\n- [ ] \\[A\\] [1350 — Students with Invalid Departments](https://leetcode.com/problems/students-with-invalid-departments/)\n- [ ] \\[A\\] [512 — Game Play Analysis II](https://leetcode.com/problems/game-play-analysis-ii/)\n### Medium\n- [x] \\[S\\] [570 — Managers with at Least 5 Direct Reports](https://leetcode.com/problems/managers-with-at-least-5-direct-reports/)\n- [ ] \\[S\\] [619 — Biggest Single Number](https://leetcode.com/problems/biggest-single-number/)\n- [ ] \\[S\\] [1174 — Immediate Food Delivery II](https://leetcode.com/problems/immediate-food-delivery-ii/)\n- [ ] \\[S\\] [550 — Game Play Analysis IV](https://leetcode.com/problems/game-play-analysis-iv/)\n- [ ] \\[S\\] [1070 — Product Sales Analysis III](https://leetcode.com/problems/product-sales-analysis-iii/)\n- [ ] \\[S\\] [1045 — Customers Who Bought All Products](https://leetcode.com/problems/customers-who-bought-all-products/)\n- [ ] \\[S\\] [1164 — Product Price at a Given Date](https://leetcode.com/problems/product-price-at-a-given-date/)\n- [ ] \\[S\\] [176 — Second Highest Salary](https://leetcode.com/problems/second-highest-salary/)\n- [ ] \\[S\\] [602 — Friend Requests II: Who Has the Most Friends](https://leetcode.com/problems/friend-requests-ii-who-has-the-most-friends/)\n- [ ] \\[S\\] [585 — Investments in 2016](https://leetcode.com/problems/investments-in-2016/)\n- [ ] \\[A\\] [1398 — Customers Who Bought Products A and B but Not C](https://leetcode.com/problems/customers-who-bought-products-a-and-b-but-not-c/)\n- [ ] \\[A\\] [1112 — Highest Grade for Each Student](https://leetcode.com/problems/highest-grade-for-each-student/)\n- [ ] \\[A\\] [1495 — Friendly Movies Streamed Last Month](https://leetcode.com/problems/friendly-movies-streamed-last-month/)\n- [ ] \\[A\\] [1501 — Countries You Can Safely Invest In](https://leetcode.com/problems/countries-you-can-safely-invest-in/)\n- [ ] \\[A\\] [1264 — Page Recommendations](https://leetcode.com/problems/page-recommendations/)\n- [ ] \\[A\\] [608 — Tree Node](https://leetcode.com/problems/tree-node/)\n- [ ] \\[A\\] [184 — Department Highest Salary](https://leetcode.com/problems/department-highest-salary/)\n- [ ] \\[A\\] [1549 — The Most Recent Orders for Each Product](https://leetcode.com/problems/the-most-recent-orders-for-each-product/)\n- [ ] \\[A\\] [1831 — Maximum Transaction Each Day](https://leetcode.com/problems/maximum-transaction-each-day/)\n- [ ] \\[A\\] [1077 — Project Employees III](https://leetcode.com/problems/project-employees-iii/)\n- [ ] \\[A\\] [1270 — All People Report to the Given Manager](https://leetcode.com/problems/all-people-report-to-the-given-manager/)\n### Hard\n- [ ] \\[A\\] [1767 — Find the Subtasks That Did Not Execute](https://leetcode.com/problems/find-the-subtasks-that-did-not-execute/)\n---\n## Part 4 — Window Functions\n### Easy\n- [ ] \\[A\\] [1303 — Find the Team Size](https://leetcode.com/problems/find-the-team-size/)\n### Medium\n- [ ] \\[S\\] [180 — Consecutive Numbers](https://leetcode.com/problems/consecutive-numbers/)\n- [ ] \\[S\\] [1204 — Last Person to Fit in the Bus](https://leetcode.com/problems/last-person-to-fit-in-the-bus/)\n- [ ] \\[S\\] [626 — Exchange Seats](https://leetcode.com/problems/exchange-seats/)\n- [ ] \\[S\\] [1321 — Restaurant Growth](https://leetcode.com/problems/restaurant-growth/)\n- [ ] \\[A\\] [534 — Game Play Analysis III](https://leetcode.com/problems/game-play-analysis-iii/)\n- [ ] \\[A\\] [1532 — The Most Recent Three Orders](https://leetcode.com/problems/the-most-recent-three-orders/)\n- [ ] \\[A\\] [1596 — The Most Frequently Ordered Products for Each Customer](https://leetcode.com/problems/the-most-frequently-ordered-products-for-each-customer/)\n- [ ] \\[A\\] [1709 — Biggest Window Between Visits](https://leetcode.com/problems/biggest-window-between-visits/)\n### Hard\n- [ ] \\[S\\] [185 — Department Top Three Salaries](https://leetcode.com/problems/department-top-three-salaries/)\n- [ ] \\[A\\] [1285 — Find the Start and End Number of Continuous Ranges](https://leetcode.com/problems/find-the-start-and-end-number-of-continuous-ranges/)\n- [ ] \\[A\\] [1412 — Find the Quiet Students in All Exams](https://leetcode.com/problems/find-the-quiet-students-in-all-exams/)\n- [ ] \\[A\\] [1225 — Report Contiguous Dates](https://leetcode.com/problems/report-contiguous-dates/)\n---\n## Part 14 — Performance Tuning and Common Anti-Patterns\n### Easy\n- [ ] \\[S\\] [1484 — Group Sold Products By The Date](https://leetcode.com/problems/group-sold-products-by-the-date/)\n- [ ] \\[S\\] [1667 — Fix Names in a Table](https://leetcode.com/problems/fix-names-in-a-table/)\n- [ ] \\[S\\] [1527 — Patients With a Condition](https://leetcode.com/problems/patients-with-a-condition/)\n- [ ] \\[S\\] [1517 — Find Users With Valid E-Mails](https://leetcode.com/problems/find-users-with-valid-e-mails/)\n## Common SQL Technical/Theoretical Questions\n- [ ] Search, compile and solve/memorize.\n---\n</content>\n</page>",
+      "fetchedTitle": "Leetcode SQL"
+    },
+    {
+      "date:Deadline:start": "2026-07-26",
+      "date:Deadline:end": "2026-08-01",
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Tutorials",
+      "Description": "",
+      "Name": "Backup Skills",
+      "url": "https://app.notion.com/p/2b30f43189ea8323b196817919b337ef",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/2b30f43189ea8323b196817919b337ef as of 2026-07-17T15:27:53.518Z:\n<page url=\"https://app.notion.com/p/2b30f43189ea8323b196817919b337ef\" icon=\"icons/database_orange\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Backup Skills\",\"Status\":\"To Do\",\"Team\":\"Tutorials\",\"date:Deadline:end\":\"2026-08-01\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-07-26\",\"url\":\"https://app.notion.com/p/2b30f43189ea8323b196817919b337ef\"}\n</properties>\n<content>\nTarget to get interview ready skills within one dedicated week. The week only starts after first interview call. Until then, continue the usual DE prep.\n- [ ] Interview-ready Excel with Power Query, DAX, etc.\n- [ ] Interview-ready Stats\n- [ ] Interview-ready PowerBI\n</content>\n</page>",
+      "fetchedTitle": "Backup Skills"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Done",
+      "Team": "Tasks",
+      "Description": "",
+      "Name": "Research and Plan",
+      "url": "https://app.notion.com/p/08e0f43189ea8201926701d24a1609e4",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/08e0f43189ea8201926701d24a1609e4 as of 2026-07-08T07:30:39.549Z:\n<page url=\"https://app.notion.com/p/08e0f43189ea8201926701d24a1609e4\" icon=\"🔍\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Research and Plan\",\"Status\":\"Done\",\"Team\":\"Tasks\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/08e0f43189ea8201926701d24a1609e4\"}\n</properties>\n<content>\n- Tools and Tech Stack\n- System Design\n- To learn\n<empty-block/>\n</content>\n</page>",
+      "fetchedTitle": "🔍 Research and Plan"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Discarded",
+      "Team": "Tutorials",
+      "Description": "",
+      "Name": "Networking",
+      "url": "https://app.notion.com/p/71b0f43189ea83088f7d81820f147f1b",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/71b0f43189ea83088f7d81820f147f1b as of 2026-07-08T07:30:39.299Z:\n<page url=\"https://app.notion.com/p/71b0f43189ea83088f7d81820f147f1b\" icon=\"icons/playback-play_red\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Networking\",\"Status\":\"Discarded\",\"Team\":\"Tutorials\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/71b0f43189ea83088f7d81820f147f1b\"}\n</properties>\n<content>\n- [ ] 1. [Introduction to Networking \\| Network Fundamentals Part 1 (Revised)](https://www.youtube.com/watch?v=9SIjoeE93lo&list=PLDQaRcbiSnqF5U8ffMgZzS7fq1rHUI3Q8)\n<empty-block/>\n</content>\n</page>",
+      "fetchedTitle": "Networking"
+    },
+    {
+      "date:Deadline:start": "2026-07-17",
+      "date:Deadline:end": "2026-08-05",
+      "date:Deadline:is_datetime": 0,
+      "Status": "In Progress",
+      "Team": "Interview Prep",
+      "Description": "",
+      "Name": "System Design",
+      "url": "https://app.notion.com/p/29c0f43189ea83398c1c014a69288990",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/29c0f43189ea83398c1c014a69288990 as of 2026-07-18T04:25:39.405Z:\n<page url=\"https://app.notion.com/p/29c0f43189ea83398c1c014a69288990\" icon=\"icons/server_yellow\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"System Design\",\"Status\":\"In Progress\",\"Team\":\"Interview Prep\",\"date:Deadline:end\":\"2026-08-05\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-07-17\",\"url\":\"https://app.notion.com/p/29c0f43189ea83398c1c014a69288990\"}\n</properties>\n<content>\n## Chapters checklist\n#### 300 pages total.\n- [ ] Chapter 1\n- [ ] Chapter 2\n- [ ] Chapter 3\n- [ ] Chapter 4\n- [ ] Chapter 5\n- [ ] Chapter 6\n- [ ] Chapter 7\n- [ ] Chapter 8\n- [ ] Chapter 9\n- [ ] Chapter 10\n- [ ] Chapter 11\n- [ ] Chapter 12\n- [ ] Chapter 13\n- [ ] Chapter 14\n- [ ] Chapter 15\n#### After the Book\n- [ ] Design Minkops like system\n- [ ] Design a Myndral like system\n- [ ] System Design CTCI\n- [ ] Threads and Locks CTCI\n- [ ] Ports and Adapters - Hexagonal design\n---\n[booknotes/system-design/system-design-interview/chapter17 at master · presmihaylov/booknotes](https://github.com/presmihaylov/booknotes/tree/master/system-design/system-design-interview/chapter17)\n</content>\n</page>",
+      "fetchedTitle": "System Design"
+    },
+    {
+      "date:Deadline:start": "2026-07-17",
+      "date:Deadline:end": "2026-09-02",
+      "date:Deadline:is_datetime": 0,
+      "Status": "In Progress",
+      "Team": "Tutorials",
+      "Description": "",
+      "Name": "Live Engineering",
+      "url": "https://app.notion.com/p/ee10f43189ea82599dd38120ec89d012",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/ee10f43189ea82599dd38120ec89d012 as of 2026-07-18T04:32:17.873Z:\n<page url=\"https://app.notion.com/p/ee10f43189ea82599dd38120ec89d012\" icon=\"icons/subtask_orange\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Live Engineering\",\"Status\":\"In Progress\",\"Team\":\"Tutorials\",\"date:Deadline:end\":\"2026-09-02\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-07-17\",\"url\":\"https://app.notion.com/p/ee10f43189ea82599dd38120ec89d012\"}\n</properties>\n<content>\nThe following is a list of implementations/projects on Myndral and Minkops.<br>No agentic coding — Claude teaches, I handcode.\nEach of the following build on top of previous, and learn just-in-time while doing.\nEach of these are broad tasks with huge scope, so they should span across multiple days. Prioritize depth and quality over deadlines.\n- [ ] An industry standard [DWH on Myndral.](/p/3a10f43189ea80a1813dc57008f5f7d0?pvs=25) \n- [ ] Implementing CI/CD on Myndral\n\t- [ ] Learning CI/CD from the current implementation\n- [ ] Moving the DWH, etc. to production GCP\n\t- [ ] Learning GCP using the current implementation\n- [ ] IaaC GCP using Terraform and gcloud\n- [ ] All of the above for Minkops\n- [ ] A [RAG+Agentic Project](/p/2b80f43189ea8204974e814d3dc65cdc?pvs=25) — enter Minkops\n\t- [ ] Uses MCP\n\t- [ ] Uses RAG\n\t- [ ] Uses Agent orchestration\n\t- [ ] Uses MLOps\n- [ ] A Kafka Project\n- [ ] A Pyspark Project\n- [ ] Load Testing\n- [ ] Video Processing Pipeline\n- [ ] Distributed Job Queue\n- [ ] Repeat all above on Minkops.\n</content>\n</page>",
+      "fetchedTitle": "Live Engineering"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Paused",
+      "Team": "Books",
+      "Description": "",
+      "Name": "AI Engineering Chip Huyen",
+      "url": "https://app.notion.com/p/2650f43189ea82af8617811500a6768b",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/2650f43189ea82af8617811500a6768b as of 2026-07-08T07:30:36.813Z:\n<page url=\"https://app.notion.com/p/2650f43189ea82af8617811500a6768b\" icon=\"📗\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"AI Engineering Chip Huyen\",\"Status\":\"Paused\",\"Team\":\"Books\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/2650f43189ea82af8617811500a6768b\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "📗 AI Engineering Chip Huyen"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Done",
+      "Team": "Interview Prep",
+      "Description": "",
+      "Name": "Postgres",
+      "url": "https://app.notion.com/p/fa40f43189ea829283fa815dec34cf04",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/fa40f43189ea829283fa815dec34cf04 as of 2026-07-14T12:57:32.910Z:\n<page url=\"https://app.notion.com/p/fa40f43189ea829283fa815dec34cf04\" icon=\"📄\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Postgres\",\"Status\":\"Done\",\"Team\":\"Interview Prep\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/fa40f43189ea829283fa815dec34cf04\"}\n</properties>\n<content>\nFinished.\n</content>\n</page>",
+      "fetchedTitle": "📄 Postgres"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Books",
+      "Description": "",
+      "Name": "DDIA Kleppmann",
+      "url": "https://app.notion.com/p/6b00f43189ea826091e70117885c65f3",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/6b00f43189ea826091e70117885c65f3 as of 2026-07-17T15:33:08.155Z:\n<page url=\"https://app.notion.com/p/6b00f43189ea826091e70117885c65f3\" icon=\"📗\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"DDIA Kleppmann\",\"Status\":\"To Do\",\"Team\":\"Books\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/6b00f43189ea826091e70117885c65f3\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "📗 DDIA Kleppmann"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Description": "",
+      "Name": "",
+      "url": "https://app.notion.com/p/2b20f43189ea8323b26d817b04debadf",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/2b20f43189ea8323b26d817b04debadf as of 2026-07-08T07:30:36.644Z:\n<page url=\"https://app.notion.com/p/2b20f43189ea8323b26d817b04debadf\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"\",\"Status\":\"To Do\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/2b20f43189ea8323b26d817b04debadf\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "New page"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Paused",
+      "Team": "Books",
+      "Description": "",
+      "Name": "Data Engineering Joe Reis",
+      "url": "https://app.notion.com/p/1650f43189ea8269b8bf81da57763a62",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/1650f43189ea8269b8bf81da57763a62 as of 2026-07-08T07:30:36.602Z:\n<page url=\"https://app.notion.com/p/1650f43189ea8269b8bf81da57763a62\" icon=\"📗\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Data Engineering Joe Reis\",\"Status\":\"Paused\",\"Team\":\"Books\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/1650f43189ea8269b8bf81da57763a62\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "📗 Data Engineering Joe Reis"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Paused",
+      "Team": "Books",
+      "Description": "",
+      "Name": "Designing ML Systems Chip Huyen",
+      "url": "https://app.notion.com/p/2df0f43189ea83228384015b0ca3cc4c",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/2df0f43189ea83228384015b0ca3cc4c as of 2026-07-08T07:30:36.562Z:\n<page url=\"https://app.notion.com/p/2df0f43189ea83228384015b0ca3cc4c\" icon=\"📗\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Designing ML Systems Chip Huyen\",\"Status\":\"Paused\",\"Team\":\"Books\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/2df0f43189ea83228384015b0ca3cc4c\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "📗 Designing ML Systems Chip Huyen"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "Paused",
+      "Team": "Tasks",
+      "Description": "",
+      "Name": "",
+      "url": "https://app.notion.com/p/8940f43189ea82b0b75781bc9d5248b9",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/8940f43189ea82b0b75781bc9d5248b9 as of 2026-07-16T05:09:36.072Z:\n<page url=\"https://app.notion.com/p/8940f43189ea82b0b75781bc9d5248b9\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"\",\"Status\":\"Paused\",\"Team\":\"Tasks\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/8940f43189ea82b0b75781bc9d5248b9\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "New page"
+    },
+    {
+      "date:Deadline:start": "2026-03-23",
+      "date:Deadline:end": "2026-03-24",
+      "date:Deadline:is_datetime": 0,
+      "Status": "Done",
+      "Team": "Tutorials",
+      "Description": "",
+      "Name": "Docker",
+      "url": "https://app.notion.com/p/1a70f43189ea8285b22301be66656f8c",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/1a70f43189ea8285b22301be66656f8c as of 2026-07-08T07:30:36.457Z:\n<page url=\"https://app.notion.com/p/1a70f43189ea8285b22301be66656f8c\" icon=\"icons/subtask_orange\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Docker\",\"Status\":\"Done\",\"Team\":\"Tutorials\",\"date:Deadline:end\":\"2026-03-24\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-03-23\",\"url\":\"https://app.notion.com/p/1a70f43189ea8285b22301be66656f8c\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "Docker"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Tasks",
+      "Description": "",
+      "Name": "Social Media feature",
+      "url": "https://app.notion.com/p/1100f43189ea82278f0581137d61aae7",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/1100f43189ea82278f0581137d61aae7 as of 2026-07-08T07:30:36.438Z:\n<page url=\"https://app.notion.com/p/1100f43189ea82278f0581137d61aae7\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Social Media feature\",\"Status\":\"To Do\",\"Team\":\"Tasks\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/1100f43189ea82278f0581137d61aae7\"}\n</properties>\n<content>\n- Photos\n\t- Scan last few posts of insta/Pinterest and store in Minkops managed storage\n\t- On special seasonal events, scan last few years’ posts at that time\n\tTo save storage instead of storing all previous images \n[Claude Code Just Changed Content Creation Forever (full-guide)](https://youtu.be/GSnKzuy-byk)\nShow this video and repo to your teach your AI how to build this.\n</content>\n</page>",
+      "fetchedTitle": "Social Media feature"
+    },
+    {
+      "date:Deadline:start": "2026-03-20",
+      "date:Deadline:end": "2026-03-22",
+      "date:Deadline:is_datetime": 0,
+      "Status": "Done",
+      "Team": "Tutorials",
+      "Description": "",
+      "Name": "dbt",
+      "url": "https://app.notion.com/p/41d0f43189ea8226811d81da356d003d",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/41d0f43189ea8226811d81da356d003d as of 2026-07-08T07:30:36.363Z:\n<page url=\"https://app.notion.com/p/41d0f43189ea8226811d81da356d003d\" icon=\"📄\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"dbt\",\"Status\":\"Done\",\"Team\":\"Tutorials\",\"date:Deadline:end\":\"2026-03-22\",\"date:Deadline:is_datetime\":0,\"date:Deadline:start\":\"2026-03-20\",\"url\":\"https://app.notion.com/p/41d0f43189ea8226811d81da356d003d\"}\n</properties>\n<content>\n‼️ *Unlike System Design, DSA and Postgres (partial), majority of practice of dbt and all other DE topics happens directly on Minkops, be aggressive, and define Minkops daily task based on what’s studied on that day, instead of the other way round.*\n<empty-block/>\nPractice `dbt` on Minkops \n‼️ `dbt` is just a tool. In this section, give serious depth to DWH concepts over `dbt`\n## Data Warehousing\n- [x] [Data Modeling Layer & Concepts \\| The Analytics Setup Guidebook](https://www.holistics.io/books/setup-analytics/data-modeling-layer-and-concepts/) \\[FULL BOOK\\]\n- [x] [Slowly changing dimension](https://en.wikipedia.org/wiki/Slowly_changing_dimension)\n- [x] [Apache Parquet: Efficient Data Storage \\| Databricks](https://www.databricks.com/glossary/what-is-parquet)\n- [x] [Row vs Column Oriented Databases](https://dataschool.com/data-modeling-101/row-vs-column-oriented-databases/)\n- [x] [Star Schema vs. OBT for Data Warehouse Performance \\| Blog \\| Fivetran](https://www.fivetran.com/blog/star-schema-vs-obt)\n- [x] Ansh Lamba Tutorials\n\t- [x] Pre-requisite: [Data Generating Sources](/p/f790f43189ea83f79283015ba6bd3091?pvs=25) \\[START HERE - NOT OPTIONAL NOW\\]\n\t- [x] [\\[Data Build Tool\\] DBT - The Ultimate Guide \\| With CI/CD](https://youtu.be/B8uwFmVt4sU?si=iJKOeIGRKeLZgdtJ) \n\t- [x] [Airbnb End-To-End Data Engineering Project (For Beginners) \\| DBT + Snowflake + AWS](https://youtu.be/3SZSDKEZqoA?si=cjLxISG_4y9O5fzh) - Do his project\n### Use Claude to understand both Theory then Practice for the following\n- [ ] dbt Test\n- [x] dbt Seeds\n- [x] dbt Macros and Jinjas\n- [x] dbt Snapshots for SCD\n- [ ] Partitioning (in DB vs DWH)\n- [ ] Micropartitions / Immutable files\n- [ ] Materialized views & Incremental view maintenance\n- [ ] CQRS\n- [ ] Event sourcing\n- [ ] CDC\n- [ ] How do you separate compute and storage etc? (in Postgres Obsidian)\n- [ ] Functional Data Engineering Paradigm\n- [x] Understanding Idempotency with a Minkops task\n- [ ] Applying Backfills in a Minkops task\n- [ ] Event Driven Pipelines and other kinds of pipelines \n- [ ] As many real-world use cases/case studies of Data Models (e.g. e-commerce, streaming service, etc) as you can\n- [ ] Study as many Reference Architectures (AWS reference architecture section) as possible\n</content>\n</page>",
+      "fetchedTitle": "📄 dbt"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "Myndral Gen Automation",
+      "url": "https://app.notion.com/p/9f70f43189ea83ecb8da0173bdc6d5b4",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/9f70f43189ea83ecb8da0173bdc6d5b4 as of 2026-07-17T15:36:15.776Z:\n<page url=\"https://app.notion.com/p/9f70f43189ea83ecb8da0173bdc6d5b4\" icon=\"🎵\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Myndral Gen Automation\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/9f70f43189ea83ecb8da0173bdc6d5b4\"}\n</properties>\n<blank-page>This page is blank and has no content.</blank-page>\n</page>",
+      "fetchedTitle": "🎵 Myndral Gen Automation"
+    },
+    {
+      "date:Deadline:is_datetime": 0,
+      "Status": "To Do",
+      "Team": "Features Dump",
+      "Description": "",
+      "Name": "Ads Decision Taker",
+      "url": "https://app.notion.com/p/e570f43189ea83beb094819b7c1ed966",
+      "pageText": "Here is the result of \"view\" for the Page with URL https://app.notion.com/p/e570f43189ea83beb094819b7c1ed966 as of 2026-07-08T07:30:36.200Z:\n<page url=\"https://app.notion.com/p/e570f43189ea83beb094819b7c1ed966\">\n<ancestor-path>\n<parent-data-source url=\"collection://90f0f431-89ea-83dc-a148-87895e93e853\" name=\"Minkops Kanban\"/>\n<ancestor-2-database url=\"https://app.notion.com/p/3970f43189ea802ba512d56aacbb133c\" title=\"\"/>\n</ancestor-path>\n<properties>\n{\"Description\":\"\",\"Name\":\"Ads Decision Taker\",\"Status\":\"To Do\",\"Team\":\"Features Dump\",\"date:Deadline:is_datetime\":0,\"url\":\"https://app.notion.com/p/e570f43189ea83beb094819b7c1ed966\"}\n</properties>\n<content>\n- [ ] Training in-house model using various datasets + RL / RLHF\n</content>\n</page>",
+      "fetchedTitle": "Ads Decision Taker"
+    }
+  ]
+}
+
