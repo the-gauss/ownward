@@ -120,6 +120,20 @@ final class AppModel {
             .sorted { $0.createdAt > $1.createdAt }
     }
 
+    func toggleScheduledLogChecklist(entryID: UUID, checklistID: Int) {
+        Task {
+            _ = try? await repository.mutate { snapshot in
+                guard let entryIndex = snapshot.scheduledLogs.firstIndex(where: { $0.id == entryID }),
+                      let updatedMarkdown = ScheduledLogMarkdownDocument(
+                        markdown: snapshot.scheduledLogs[entryIndex].markdown
+                      ).togglingChecklist(at: checklistID) else {
+                    return
+                }
+                snapshot.scheduledLogs[entryIndex].markdown = updatedMarkdown
+            }
+        }
+    }
+
     var visibleJobRoles: [JobRole] {
         JobSearchOrganizer.roles(
             snapshot.jobSearch.roles,

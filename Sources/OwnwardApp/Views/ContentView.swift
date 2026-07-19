@@ -19,7 +19,13 @@ struct ContentView: View {
                     switch model.workspaceMode {
                     case .projectManagement:
                         if model.isDailyLogSelected {
-                            ScheduledLogView(kind: .dailyDayStarter, entries: model.scheduledLogs(for: .dailyDayStarter))
+                            ScheduledLogView(
+                                kind: .dailyDayStarter,
+                                entries: model.scheduledLogs(for: .dailyDayStarter),
+                                onToggleChecklist: { entryID, checklistID in
+                                    model.toggleScheduledLogChecklist(entryID: entryID, checklistID: checklistID)
+                                }
+                            )
                                 .environment(\.ownwardTheme, theme.scalingFonts(by: model.zoomScale))
                         } else {
                             MainContentView(model: model)
@@ -27,7 +33,13 @@ struct ContentView: View {
                         }
                     case .jobSearch:
                         if model.isWeeklyLogSelected {
-                            ScheduledLogView(kind: .weeklyCanadaRolesSearch, entries: model.scheduledLogs(for: .weeklyCanadaRolesSearch))
+                            ScheduledLogView(
+                                kind: .weeklyCanadaRolesSearch,
+                                entries: model.scheduledLogs(for: .weeklyCanadaRolesSearch),
+                                onToggleChecklist: { entryID, checklistID in
+                                    model.toggleScheduledLogChecklist(entryID: entryID, checklistID: checklistID)
+                                }
+                            )
                         } else {
                             JobSearchView(model: model)
                         }

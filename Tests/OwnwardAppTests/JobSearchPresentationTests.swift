@@ -6,6 +6,95 @@ import Testing
 
 @Suite("Job Search presentation policy")
 struct JobSearchPresentationTests {
+    @Test("scheduled log markdown keeps blocks separate and finds checklist markers after list prefixes")
+    func scheduledLogMarkdownDocument() throws {
+        let markdown = """
+        ## Today *and tomorrow*
+
+        A short paragraph with **emphasis** and a [reference](https://example.com).
+
+        - **08:00** — [ ] Review the design notes.
+          - [x] Keep the accepted constraints.
+        1. Preserve this ordered step.
+
+        > Keep this quoted reminder.
+
+        ---
+
+        ```swift
+        let delivered = true
+        ```
+        """
+
+        let document = ScheduledLogMarkdownDocument(markdown: markdown)
+
+        #expect(document.blocks.contains { block in
+            if case let .heading(_, level, content) = block {
+                return level == 2 && content == "Today *and tomorrow*"
+            }
+            return false
+        })
+        #expect(document.blocks.contains { block in
+            if case let .paragraph(_, content) = block {
+                return content.contains("**emphasis**") && content.contains("[reference](https://example.com)")
+            }
+            return false
+        })
+        #expect(document.blocks.contains { block in
+            if case let .orderedListItem(_, _, marker, content) = block {
+                return marker == "1." && content == "Preserve this ordered step."
+            }
+            return false
+        })
+        #expect(document.blocks.contains { block in
+            if case let .quote(_, content) = block {
+                return content == "Keep this quoted reminder."
+            }
+            return false
+        })
+        #expect(document.blocks.contains { block in
+            if case let .codeBlock(_, language, code) = block {
+                return language == "swift" && code == "let delivered = true"
+            }
+            return false
+        })
+        #expect(document.blocks.contains { if case .divider = $0 { return true }; return false })
+        #expect(document.checklistItems.map(\.isCompleted) == [false, true])
+        #expect(document.checklistItems.map(\.depth) == [0, 1])
+
+        let toggledMarkdown = try #require(document.togglingChecklist(at: document.checklistItems[0].id))
+        let toggled = ScheduledLogMarkdownDocument(markdown: toggledMarkdown)
+        #expect(toggled.checklistItems.map(\.isCompleted) == [true, true])
+        #expect(toggledMarkdown.contains("**08:00** — [x] Review the design notes."))
+    }
+
+    @Test("scheduled log checkbox updates only its persisted markdown marker")
+    @MainActor
+    func scheduledLogChecklistPersistence() async throws {
+        let entry = ScheduledLogEntry(
+            kind: .weeklyCanadaRolesSearch,
+            markdown: "- [ ] Follow up with the hiring team.\n- [x] Preserve this completed item."
+        )
+        let unrelated = ScheduledLogEntry(kind: .dailyDayStarter, markdown: "# Leave this daily log alone")
+        let snapshot = OwnwardSnapshot(scheduledLogs: [entry, unrelated])
+        let repository = try WorkspaceRepository(inMemory: snapshot)
+        let server = LocalAPIServer(router: APIRouter(repository: repository, token: "test"))
+        let model = AppModel(repository: repository, apiServer: server, initialSnapshot: snapshot)
+
+        model.toggleScheduledLogChecklist(entryID: entry.id, checklistID: 0)
+
+        for _ in 0..<100 {
+            let updated = await repository.snapshot()
+            if updated.scheduledLogs.first(where: { $0.id == entry.id })?.markdown.contains("- [x] Follow up with the hiring team.") == true {
+                #expect(updated.scheduledLogs.first(where: { $0.id == unrelated.id }) == unrelated)
+                return
+            }
+            await Task.yield()
+        }
+
+        Issue.record("The scheduled-log checkbox mutation did not persist.")
+    }
+
     @Test("project task commands are unavailable in Job Search mode")
     func workspaceCommandScope() {
         #expect(WorkspaceMode.projectManagement.supportsProjectControls)
