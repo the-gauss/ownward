@@ -12,7 +12,8 @@ struct SnapshotPersistenceTests {
         let snapshot = OwnwardSnapshot(
             boards: [board],
             tasks: [task],
-            referenceGroups: [.init(members: [.task(task.id), .miniTask(task.miniTasks[0].id)])]
+            referenceGroups: [.init(members: [.task(task.id), .miniTask(task.miniTasks[0].id)])],
+            scheduledLogs: [.init(kind: .dailyDayStarter, markdown: "# Today")]
         )
 
         let data = try JSONEncoder.ownward.encode(snapshot)
@@ -70,7 +71,7 @@ struct SnapshotPersistenceTests {
 
         let migrated = SnapshotMigrator.upgrade(snapshot)
 
-        #expect(migrated.schemaVersion == 5)
+        #expect(migrated.schemaVersion == SnapshotMigrator.currentSchemaVersion)
         #expect(migrated.jobSearch.activities[0].detail == "Verified role added to the Canon track.")
     }
 

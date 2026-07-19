@@ -269,6 +269,7 @@ struct MainContentView: View {
         switch model.sidebarSelection {
         case .board: model.selectedBoard?.name ?? "Ownward"
         case .saved(let view): view.title
+        case .dailyLog: ScheduledLogKind.dailyDayStarter.title
         }
     }
 }

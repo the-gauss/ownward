@@ -20,8 +20,9 @@ Example MCP configuration:
 The bridge contains no third-party Python dependencies. It offers board creation,
 full task reads, team-aware task creation and updates, atomic Team/status/manual-
 order moves, timeline shifting and edge resizing, structured link updates, categorized mini-tasks,
-bidirectional completion references, completion actions, and a dedicated
-`ownward_day_starter_context` tool.
+bidirectional completion references, completion actions, a dedicated
+`ownward_day_starter_context` tool, and `ownward_append_scheduled_log` for the
+final Markdown response shown in Daily Log or Weekly Log.
 
 Job Search adds five tools used by the Weekly Canada Roles Search:
 

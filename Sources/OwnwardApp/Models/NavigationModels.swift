@@ -76,4 +76,10 @@ enum SavedView: String, CaseIterable, Identifiable {
 enum SidebarSelection: Hashable {
     case board(BoardID)
     case saved(SavedView)
+    case dailyLog
+}
+
+enum JobSearchSidebarSelection: Hashable {
+    case scope(JobSearchScope)
+    case weeklyLog
 }

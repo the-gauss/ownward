@@ -1,11 +1,13 @@
 import Foundation
 
 public enum SnapshotMigrator {
-    public static let currentSchemaVersion = 5
+    public static let currentSchemaVersion = 6
 
     public static func upgrade(_ snapshot: OwnwardSnapshot, using seed: OwnwardSnapshot = .empty) -> OwnwardSnapshot {
         var upgraded = snapshot
-        guard upgraded.schemaVersion < currentSchemaVersion else { return upgraded }
+        guard upgraded.schemaVersion < currentSchemaVersion else {
+            return applyingScheduledLogRetention(to: upgraded)
+        }
 
         if upgraded.schemaVersion < 2 {
             var laneOrders: [LaneKey: Int] = [:]
@@ -49,11 +51,17 @@ public enum SnapshotMigrator {
         }
 
         upgraded.schemaVersion = currentSchemaVersion
-        return upgraded
+        return applyingScheduledLogRetention(to: upgraded)
     }
 
     private static let legacyMalformedJobActivityDetail =
         "Verified role added to the (verified.track.title) track."
+
+    private static func applyingScheduledLogRetention(to snapshot: OwnwardSnapshot) -> OwnwardSnapshot {
+        var normalized = snapshot
+        normalized.scheduledLogs = ScheduledLogRetention.prune(normalized.scheduledLogs)
+        return normalized
+    }
 
     private static func removingCategoryScaffolding(from markdown: String, categories: Set<String>) -> String {
         let lines = markdown.components(separatedBy: .newlines)

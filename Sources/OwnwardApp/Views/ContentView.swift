@@ -18,20 +18,29 @@ struct ContentView: View {
                 Group {
                     switch model.workspaceMode {
                     case .projectManagement:
-                        MainContentView(model: model)
-                            .environment(\.ownwardTheme, theme.scalingFonts(by: model.zoomScale))
+                        if model.isDailyLogSelected {
+                            ScheduledLogView(kind: .dailyDayStarter, entries: model.scheduledLogs(for: .dailyDayStarter))
+                                .environment(\.ownwardTheme, theme.scalingFonts(by: model.zoomScale))
+                        } else {
+                            MainContentView(model: model)
+                                .environment(\.ownwardTheme, theme.scalingFonts(by: model.zoomScale))
+                        }
                     case .jobSearch:
-                        JobSearchView(model: model)
+                        if model.isWeeklyLogSelected {
+                            ScheduledLogView(kind: .weeklyCanadaRolesSearch, entries: model.scheduledLogs(for: .weeklyCanadaRolesSearch))
+                        } else {
+                            JobSearchView(model: model)
+                        }
                     }
                 }
             }
             .inspector(isPresented: inspectorBinding) {
-                    if model.workspaceMode == .projectManagement, let task = model.selectedTask {
+                    if model.workspaceMode == .projectManagement, !model.isDailyLogSelected, let task = model.selectedTask {
                         InspectorView(model: model, task: task)
                             .id(task.id)
                             .environment(\.ownwardTheme, theme.scalingFonts(by: model.zoomScale))
                             .inspectorColumnWidth(min: 280, ideal: 320, max: 430)
-                    } else if model.workspaceMode == .jobSearch, let role = model.selectedJobRole {
+                    } else if model.workspaceMode == .jobSearch, !model.isWeeklyLogSelected, let role = model.selectedJobRole {
                         JobRoleInspectorView(model: model, role: role)
                             .id(role.id)
                             .inspectorColumnWidth(min: 300, ideal: 340, max: 440)
@@ -52,7 +61,7 @@ struct ContentView: View {
             model.resetTaskFilters()
             if case .saved = selection { model.viewMode = .table }
         }
-        .onChange(of: model.jobSearchScope) { _, _ in
+        .onChange(of: model.jobSidebarSelection) { _, _ in
             if let selected = model.selectedJobRoleID,
                !model.visibleJobRoles.contains(where: { $0.id == selected }) {
                 model.selectedJobRoleID = nil
@@ -69,8 +78,8 @@ struct ContentView: View {
         Binding(
             get: {
                 switch model.workspaceMode {
-                case .projectManagement: model.selectedTaskID != nil
-                case .jobSearch: model.selectedJobRoleID != nil
+                case .projectManagement: !model.isDailyLogSelected && model.selectedTaskID != nil
+                case .jobSearch: !model.isWeeklyLogSelected && model.selectedJobRoleID != nil
                 }
             },
             set: { presented in

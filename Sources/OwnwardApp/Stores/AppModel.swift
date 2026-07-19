@@ -20,7 +20,14 @@ final class AppModel {
     var selectedTaskID: TaskID?
     var selectedJobRoleID: JobRoleID?
     var viewMode: MainViewMode = .kanban
-    var jobSearchScope: JobSearchScope = .all
+    var jobSidebarSelection: JobSearchSidebarSelection = .scope(.all)
+    var jobSearchScope: JobSearchScope {
+        get {
+            guard case .scope(let scope) = jobSidebarSelection else { return .all }
+            return scope
+        }
+        set { jobSidebarSelection = .scope(newValue) }
+    }
     var jobSearchSort: JobSearchSort = .nextAction
     var jobTrackFilter: JobTrackFilter = .all
     var searchText = ""
@@ -97,6 +104,22 @@ final class AppModel {
         selectedJobRoleID.flatMap(snapshot.jobSearch.role(id:))
     }
 
+    var isDailyLogSelected: Bool {
+        if case .dailyLog = sidebarSelection { return true }
+        return false
+    }
+
+    var isWeeklyLogSelected: Bool {
+        if case .weeklyLog = jobSidebarSelection { return true }
+        return false
+    }
+
+    func scheduledLogs(for kind: ScheduledLogKind) -> [ScheduledLogEntry] {
+        snapshot.scheduledLogs
+            .filter { $0.kind == kind }
+            .sorted { $0.createdAt > $1.createdAt }
+    }
+
     var visibleJobRoles: [JobRole] {
         JobSearchOrganizer.roles(
             snapshot.jobSearch.roles,
@@ -136,6 +159,7 @@ final class AppModel {
             }
         case .saved(.paused): return snapshot.tasks.filter { $0.status == .paused }
         case .saved(.discarded): return snapshot.tasks.filter { $0.status == .discarded }
+        case .dailyLog: return []
         }
     }
 

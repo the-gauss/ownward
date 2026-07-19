@@ -72,6 +72,16 @@ public struct JobSearchContext: Codable, Equatable, Sendable {
     }
 }
 
+public struct CreateScheduledLogRequest: Codable, Equatable, Sendable {
+    public var kind: ScheduledLogKind
+    public var markdown: String
+
+    public init(kind: ScheduledLogKind, markdown: String) {
+        self.kind = kind
+        self.markdown = markdown
+    }
+}
+
 public struct UpsertJobRoleRequest: Codable, Equatable, Sendable {
     public var track: JobSearchTrack
     public var priority: Int?

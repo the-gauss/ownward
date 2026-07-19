@@ -320,19 +320,22 @@ public struct OwnwardSnapshot: Codable, Equatable, Sendable {
     public var tasks: [TaskItem]
     public var referenceGroups: [CompletionReferenceGroup]
     public var jobSearch: JobSearchWorkspace
+    public var scheduledLogs: [ScheduledLogEntry]
 
     public init(
         schemaVersion: Int = 1,
         boards: [Board] = [],
         tasks: [TaskItem] = [],
         referenceGroups: [CompletionReferenceGroup] = [],
-        jobSearch: JobSearchWorkspace = .empty
+        jobSearch: JobSearchWorkspace = .empty,
+        scheduledLogs: [ScheduledLogEntry] = []
     ) {
         self.schemaVersion = schemaVersion
         self.boards = boards
         self.tasks = tasks
         self.referenceGroups = referenceGroups
         self.jobSearch = jobSearch
+        self.scheduledLogs = scheduledLogs
     }
 
     public static let empty = OwnwardSnapshot()
@@ -343,7 +346,7 @@ public struct OwnwardSnapshot: Codable, Equatable, Sendable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case schemaVersion, boards, tasks, referenceGroups, jobSearch
+        case schemaVersion, boards, tasks, referenceGroups, jobSearch, scheduledLogs
     }
 
     public init(from decoder: Decoder) throws {
@@ -353,6 +356,7 @@ public struct OwnwardSnapshot: Codable, Equatable, Sendable {
         tasks = try container.decodeIfPresent([TaskItem].self, forKey: .tasks) ?? []
         referenceGroups = try container.decodeIfPresent([CompletionReferenceGroup].self, forKey: .referenceGroups) ?? []
         jobSearch = try container.decodeIfPresent(JobSearchWorkspace.self, forKey: .jobSearch) ?? .empty
+        scheduledLogs = try container.decodeIfPresent([ScheduledLogEntry].self, forKey: .scheduledLogs) ?? []
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -362,6 +366,7 @@ public struct OwnwardSnapshot: Codable, Equatable, Sendable {
         try container.encode(tasks, forKey: .tasks)
         try container.encode(referenceGroups, forKey: .referenceGroups)
         try container.encode(jobSearch, forKey: .jobSearch)
+        try container.encode(scheduledLogs, forKey: .scheduledLogs)
     }
 }
 

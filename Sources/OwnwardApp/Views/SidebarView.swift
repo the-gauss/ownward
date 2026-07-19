@@ -117,11 +117,15 @@ struct SidebarView: View {
                         .tag(SidebarSelection.saved(view))
                 }
             }
+            Section("Daily Log") {
+                Label("Daily Log", systemImage: "text.book.closed")
+                    .tag(SidebarSelection.dailyLog)
+            }
         }
     }
 
     private var jobSearchList: some View {
-        List(selection: $model.jobSearchScope) {
+        List(selection: $model.jobSidebarSelection) {
             Section("Opportunities") {
                 ForEach(JobSearchScope.allCases) { scope in
                     HStack(spacing: 8) {
@@ -132,8 +136,12 @@ struct SidebarView: View {
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
-                    .tag(scope)
+                    .tag(JobSearchSidebarSelection.scope(scope))
                 }
+            }
+            Section("Weekly Log") {
+                Label("Weekly Log", systemImage: "text.book.closed")
+                    .tag(JobSearchSidebarSelection.weeklyLog)
             }
         }
     }

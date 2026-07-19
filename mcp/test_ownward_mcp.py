@@ -35,6 +35,7 @@ class MCPServerTests(unittest.TestCase):
         self.assertEqual(responses[0]["result"]["serverInfo"]["version"], "0.5.0")
         tool_names = {tool["name"] for tool in responses[1]["result"]["tools"]}
         self.assertIn("ownward_day_starter_context", tool_names)
+        self.assertIn("ownward_append_scheduled_log", tool_names)
         self.assertIn("ownward_shift_task_schedule", tool_names)
         self.assertIn("ownward_resize_task_schedule", tool_names)
         self.assertIn("ownward_job_search_context", tool_names)
@@ -60,6 +61,19 @@ class MCPServerTests(unittest.TestCase):
         self.assertIn("track=backup", client.calls[1][1])
         self.assertIn("scope=needsAction", client.calls[1][1])
         self.assertIn("search=municipal", client.calls[1][1])
+
+    def test_scheduled_log_maps_final_markdown_to_ownward(self):
+        client = FakeClient()
+        server = MODULE.MCPServer(client)
+
+        server.call_tool("ownward_append_scheduled_log", {
+            "kind": "daily_day_starter", "markdown": "# Today\n- [ ] Focus"
+        })
+
+        self.assertEqual(client.calls[0], (
+            "POST", "/v1/scheduled-logs",
+            {"kind": "daily_day_starter", "markdown": "# Today\n- [ ] Focus"},
+        ))
 
     def test_upsert_job_role_maps_complete_research_record_without_fit_features(self):
         client = FakeClient()

@@ -3,11 +3,22 @@ import SwiftUI
 import OwnwardCore
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var appearanceObservation: NSKeyValueObservation?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
         let choice = UserDefaults.standard.string(forKey: "appearanceTheme")
             .flatMap(AppThemeChoice.init(rawValue:)) ?? .system
         OwnwardBrand.applyAppIcon(for: choice)
+        OwnwardNotificationScheduler.requestAuthorization()
+        appearanceObservation = NSApp.observe(\.effectiveAppearance, options: [.new]) { _, _ in
+            Task { @MainActor in
+                let choice = UserDefaults.standard.string(forKey: "appearanceTheme")
+                    .flatMap(AppThemeChoice.init(rawValue:)) ?? .system
+                guard choice.usesSystemAppearance else { return }
+                OwnwardBrand.applyAppIcon(for: choice)
+            }
+        }
         NSApp.activate(ignoringOtherApps: true)
     }
 
@@ -16,6 +27,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             .flatMap(AppThemeChoice.init(rawValue:)) ?? .system
         OwnwardBrand.applyAppIcon(for: choice)
     }
+
 }
 
 @main

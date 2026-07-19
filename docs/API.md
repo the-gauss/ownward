@@ -52,6 +52,7 @@ is locked.
 | `POST /v1/references` | Create or merge a bidirectional completion reference. |
 | `POST /v1/job-search/roles/upsert` | Idempotently insert or refresh a role by canonical posting URL, with employer/role/location fallback identity. |
 | `PATCH /v1/job-search/roles/{id}` | Update selected role fields and append a dated activity entry. Explicit JSON `null` clears nullable values. |
+| `POST /v1/scheduled-logs` | Persist a final scheduled-run Markdown response and trigger an Ownward notification. Daily runs retain four entries; weekly runs retain the current and previous ISO weeks. |
 
 ## Reference semantics
 
@@ -67,7 +68,8 @@ merge to avoid cyclic propagation.
 It intentionally returns the complete structured context rather than a summary:
 the schedule can count remaining mini-tasks, calculate quotas, prioritize deadline
 ranges, inspect links/notes, and then write status or completion changes through
-the same API. Existing Codex schedules are not modified by this repository.
+the same API. Its final briefing is written with `POST /v1/scheduled-logs` using
+kind `daily_day_starter` and appears read-only in Project Management's Daily Log.
 
 ## Weekly role search
 
@@ -98,3 +100,7 @@ in Finder** opens its containing folder and selects the exact `.tex` file; Ownwa
 does not compile or open a PDF.
 
 Grouping, sorting, theme, zoom, and Table column width remain local presentation preferences rather than automation data. Team/status/manual-position changes and timeline edits are exposed because they mutate the shared task model.
+
+The weekly workflow writes its final Markdown summary with `POST /v1/scheduled-logs`
+using kind `weekly_canada_roles_search`; it appears read-only in Job Search's
+Weekly Log.

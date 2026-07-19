@@ -4,10 +4,16 @@ import OwnwardCore
 public struct APIRouter: Sendable {
     private let repository: WorkspaceRepository
     private let token: String
+    private let scheduledLogNotifier: any ScheduledLogNotifier
 
-    public init(repository: WorkspaceRepository, token: String) {
+    public init(
+        repository: WorkspaceRepository,
+        token: String,
+        scheduledLogNotifier: any ScheduledLogNotifier = NoopScheduledLogNotifier()
+    ) {
         self.repository = repository
         self.token = token
+        self.scheduledLogNotifier = scheduledLogNotifier
     }
 
     public func handle(_ request: APIRequest) async -> APIResponse {
@@ -26,6 +32,8 @@ public struct APIRouter: Sendable {
                 return .json(await repository.snapshot().referenceGroups)
             case ("POST", "/v1/tasks"):
                 return try await createTask(from: request.body)
+            case ("POST", "/v1/scheduled-logs"):
+                return try await createScheduledLog(from: request.body)
             case ("POST", "/v1/boards"):
                 return try await createBoard(from: request.body)
             case ("GET", "/v1/day-starter/context"):
@@ -154,6 +162,19 @@ public struct APIRouter: Sendable {
         let createdTask = task
         _ = try await repository.mutate { $0.tasks.append(createdTask) }
         return .json(createdTask, status: 201)
+    }
+
+    private func createScheduledLog(from body: Data) async throws -> APIResponse {
+        let request = try JSONDecoder.api.decode(CreateScheduledLogRequest.self, from: body)
+        guard !request.markdown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return .error(status: 400, message: "A scheduled log requires Markdown content.")
+        }
+        let entry = ScheduledLogEntry(kind: request.kind, markdown: request.markdown)
+        _ = try await repository.mutate { snapshot in
+            snapshot.scheduledLogs = ScheduledLogRetention.adding(entry, to: snapshot.scheduledLogs)
+        }
+        await scheduledLogNotifier.notify(of: entry)
+        return .json(entry, status: 201)
     }
 
     private func upsertJobRole(from body: Data) async throws -> APIResponse {

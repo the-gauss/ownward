@@ -5,6 +5,40 @@ import Testing
 
 @Suite("Automation API")
 struct APIRouterTests {
+    actor RecordingScheduledLogNotifier: ScheduledLogNotifier {
+        private(set) var entries: [ScheduledLogEntry] = []
+
+        func notify(of entry: ScheduledLogEntry) async {
+            entries.append(entry)
+        }
+    }
+
+    @Test("scheduled logs persist Markdown and enforce daily retention")
+    func writesScheduledLogs() async throws {
+        let repository = try WorkspaceRepository(inMemory: .empty)
+        let notifier = RecordingScheduledLogNotifier()
+        let router = APIRouter(repository: repository, token: "secret", scheduledLogNotifier: notifier)
+        let headers = ["authorization": "Bearer secret"]
+
+        for index in 1...5 {
+            let response = await router.handle(APIRequest(
+                method: "POST",
+                path: "/v1/scheduled-logs",
+                headers: headers,
+                body: try JSONEncoder.api.encode(CreateScheduledLogRequest(
+                    kind: .dailyDayStarter,
+                    markdown: "# Daily \(index)"
+                ))
+            ))
+            #expect(response.status == 201)
+        }
+
+        let logs = await repository.snapshot().scheduledLogs
+        #expect(logs.count == 4)
+        #expect(logs.allSatisfy { $0.kind == .dailyDayStarter })
+        #expect((await notifier.entries).count == 5)
+    }
+
     @Test("job-search context is a complete durable replacement for tracker memory")
     func jobSearchContext() async throws {
         let role = JobRole(

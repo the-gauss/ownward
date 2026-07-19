@@ -362,6 +362,19 @@ TOOLS: list[dict[str, Any]] = [
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
     },
     {
+        "name": "ownward_append_scheduled_log",
+        "description": "Persist the final Markdown result of a scheduled run in its read-only Ownward log. Retention is enforced by Ownward.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "kind": {"type": "string", "enum": ["daily_day_starter", "weekly_canada_roles_search"]},
+                "markdown": {"type": "string", "minLength": 1},
+            },
+            "required": ["kind", "markdown"],
+            "additionalProperties": False,
+        },
+    },
+    {
         "name": "ownward_job_search_context",
         "description": "Return every durable job-role record and activity entry. Use this first instead of tracker files, Notion, or task memory.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
@@ -566,6 +579,10 @@ class MCPServer:
             })
         elif name == "ownward_day_starter_context":
             data = self.client.request("GET", "/v1/day-starter/context")
+        elif name == "ownward_append_scheduled_log":
+            data = self.client.request("POST", "/v1/scheduled-logs", {
+                "kind": arguments["kind"], "markdown": arguments["markdown"],
+            })
         elif name == "ownward_job_search_context":
             data = self.client.request("GET", "/v1/job-search/context")
         elif name == "ownward_list_job_roles":

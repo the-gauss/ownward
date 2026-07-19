@@ -23,6 +23,8 @@ Project Management includes:
 - Atomic local persistence under `~/Library/Application Support/Ownward`.
 - A bearer-protected loopback API and dependency-free MCP bridge for Codex and ChatGPT.
 - A dedicated Daily Day Starter context endpoint/tool.
+- A read-only Daily Log with the last four scheduled briefings and a native
+  Ownward notification for each persisted result.
 - Locked-screen API readiness after the first login following a reboot, so auto-wake schedules do not depend on a visible window.
 
 Job Search includes:
@@ -40,6 +42,8 @@ Job Search includes:
   application history or advanced pipeline state.
 - A complete loopback API and five MCP tools used by the Weekly Canada Roles
   Search, so the schedule no longer depends on JSON, Notion, or conversational memory.
+- A read-only Weekly Log retaining the current and previous ISO weeks of
+  scheduled summaries.
 
 ## Run
 
