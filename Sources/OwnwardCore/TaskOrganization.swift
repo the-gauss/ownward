@@ -139,6 +139,102 @@ public enum ChecklistOrganizer {
     }
 }
 
+/// Applies structural checklist edits while retaining the imported, outline-style
+/// ordering. A child is inserted after its parent's existing subtree, so adding a
+/// sub-task never separates an existing parent from one of its descendants.
+public enum ChecklistEditor {
+    @discardableResult
+    public static func addItem(
+        to task: inout TaskItem,
+        title: String = "",
+        category: String? = nil
+    ) -> MiniTask {
+        let miniTask = MiniTask(
+            taskID: task.id,
+            title: title,
+            depth: 0,
+            order: task.miniTasks.count,
+            category: category ?? task.miniTasks.last?.category
+        )
+        task.miniTasks.append(miniTask)
+        return miniTask
+    }
+
+    @discardableResult
+    public static func addSubtask(
+        to parentID: MiniTaskID,
+        in task: inout TaskItem,
+        title: String = ""
+    ) throws -> MiniTask {
+        guard let parentIndex = task.miniTasks.firstIndex(where: { $0.id == parentID }) else {
+            throw DomainError.miniTaskNotFound
+        }
+
+        let parent = task.miniTasks[parentIndex]
+        var insertionIndex = parentIndex + 1
+        while insertionIndex < task.miniTasks.count,
+              task.miniTasks[insertionIndex].depth > parent.depth {
+            insertionIndex += 1
+        }
+
+        let miniTask = MiniTask(
+            taskID: task.id,
+            title: title,
+            depth: parent.depth + 1,
+            order: insertionIndex,
+            category: parent.category
+        )
+        task.miniTasks.insert(miniTask, at: insertionIndex)
+        normalize(&task)
+        return miniTask
+    }
+
+    /// Removes the selected item and every following descendant. Cascading this
+    /// deletion prevents orphaned indented checklist rows.
+    @discardableResult
+    public static func removeItem(
+        _ miniTaskID: MiniTaskID,
+        from task: inout TaskItem
+    ) throws -> [MiniTaskID] {
+        guard let itemIndex = task.miniTasks.firstIndex(where: { $0.id == miniTaskID }) else {
+            throw DomainError.miniTaskNotFound
+        }
+
+        let depth = task.miniTasks[itemIndex].depth
+        var endIndex = itemIndex + 1
+        while endIndex < task.miniTasks.count, task.miniTasks[endIndex].depth > depth {
+            endIndex += 1
+        }
+
+        let removedIDs = task.miniTasks[itemIndex..<endIndex].map(\.id)
+        task.miniTasks.removeSubrange(itemIndex..<endIndex)
+        normalize(&task)
+        return removedIDs
+    }
+
+    public static func normalize(_ task: inout TaskItem) {
+        for index in task.miniTasks.indices {
+            task.miniTasks[index].taskID = task.id
+            task.miniTasks[index].order = index
+            task.miniTasks[index].depth = max(0, task.miniTasks[index].depth)
+        }
+    }
+
+    /// Removes completion links that targeted deleted checklist items. A
+    /// reference group needs at least two members to represent a relationship.
+    public static func removeReferences(
+        to deletedMiniTaskIDs: Set<MiniTaskID>,
+        from snapshot: inout OwnwardSnapshot
+    ) {
+        guard !deletedMiniTaskIDs.isEmpty else { return }
+        let deletedTargets = Set(deletedMiniTaskIDs.map { CompletionTarget.miniTask($0) })
+        snapshot.referenceGroups = snapshot.referenceGroups.compactMap { group in
+            let members = group.members.subtracting(deletedTargets)
+            return members.count > 1 ? CompletionReferenceGroup(id: group.id, members: members) : nil
+        }
+    }
+}
+
 public enum TaskOrganizer {
     public static func filtered(
         _ tasks: [TaskItem],

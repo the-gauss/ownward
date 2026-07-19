@@ -51,8 +51,14 @@ struct InspectorView: View {
                 }
 
                 InspectorSection("Team") {
-                    TextField("No Team", text: teamBinding)
-                        .textFieldStyle(.roundedBorder)
+                    TaskTeamPicker(
+                        selection: teamBinding,
+                        teams: model.teams(for: draft)
+                    ) { name in
+                        let canonicalName = model.canonicalTeamName(name, for: draft.boardID)
+                        draft.team = canonicalName
+                        model.createTeam(named: canonicalName, on: draft.boardID)
+                    }
                 }
 
                 InspectorSection("Deadline") {
@@ -94,6 +100,15 @@ struct InspectorView: View {
                                     .onSubmit(save)
                                     .frame(maxWidth: .infinity)
                                 Button {
+                                    addSubtask(to: mini)
+                                } label: {
+                                    Image(systemName: "plus")
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.secondary)
+                                .accessibilityLabel("Add sub-task")
+                                .help("Add sub-task")
+                                Button {
                                     checklistReferenceSource = mini.id
                                 } label: {
                                     Image(systemName: "arrow.triangle.branch")
@@ -113,6 +128,15 @@ struct InspectorView: View {
                                         checklistReferenceSource = nil
                                     }
                                 }
+                                Button(role: .destructive) {
+                                    delete(mini)
+                                } label: {
+                                    Image(systemName: "trash")
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(OwnwardTheme.destructive)
+                                .accessibilityLabel("Delete checklist item")
+                                .help("Delete item and its sub-tasks")
                             }
                             .padding(.leading, CGFloat(mini.depth * 14))
                         }
@@ -233,10 +257,13 @@ struct InspectorView: View {
     private var startDateBinding: Binding<Date> {
         Binding(get: { draft.deadlineStart ?? Date() }, set: { draft.deadlineStart = $0 })
     }
-    private var teamBinding: Binding<String> {
+    private var teamBinding: Binding<String?> {
         Binding(
-            get: { draft.team ?? "" },
-            set: { draft.team = $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 }
+            get: { draft.team },
+            set: { value in
+                let normalized = value?.trimmingCharacters(in: .whitespacesAndNewlines)
+                draft.team = normalized?.isEmpty == false ? normalized : nil
+            }
         )
     }
     private var endDateBinding: Binding<Date> {
@@ -331,10 +358,34 @@ struct InspectorView: View {
         }
     }
     private func addMiniTask() {
-        let mini = MiniTask(taskID: draft.id, title: "", order: draft.miniTasks.count, category: draft.miniTasks.last?.category)
+        let mini = ChecklistEditor.addItem(to: &draft)
         showsAllChecklistItems = true
-        draft.miniTasks.append(mini)
+        save()
         DispatchQueue.main.async { focusedMiniTaskID = mini.id }
+    }
+    private func addSubtask(to mini: MiniTask) {
+        do {
+            let subtask = try ChecklistEditor.addSubtask(to: mini.id, in: &draft)
+            showsAllChecklistItems = true
+            save()
+            DispatchQueue.main.async { focusedMiniTaskID = subtask.id }
+        } catch {
+            model.apiError = error.localizedDescription
+        }
+    }
+    private func delete(_ mini: MiniTask) {
+        do {
+            let removedIDs = try ChecklistEditor.removeItem(mini.id, from: &draft)
+            if let focusedMiniTaskID, removedIDs.contains(focusedMiniTaskID) {
+                self.focusedMiniTaskID = nil
+            }
+            if let checklistReferenceSource, removedIDs.contains(checklistReferenceSource) {
+                self.checklistReferenceSource = nil
+            }
+            save()
+        } catch {
+            model.apiError = error.localizedDescription
+        }
     }
     private func save() {
         var taskToSave = draft
@@ -387,6 +438,80 @@ private struct CompactPickerLabel: View {
         .frame(width: 180, height: 25)
         .background(.quaternary.opacity(0.45), in: RoundedRectangle(cornerRadius: 5))
         .overlay { RoundedRectangle(cornerRadius: 5).stroke(.separator.opacity(0.6)) }
+    }
+}
+
+private struct TaskTeamPicker: View {
+    @Binding var selection: String?
+    let teams: [String]
+    let onCreate: (String) -> Void
+    @State private var isCreatingTeam = false
+    @State private var draftName = ""
+    @FocusState private var isNameFocused: Bool
+
+    private var normalizedDraftName: String {
+        draftName.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    var body: some View {
+        Menu {
+            Button {
+                draftName = ""
+                isCreatingTeam = true
+            } label: {
+                Label("Create Team", systemImage: "plus")
+            }
+            Divider()
+            Button {
+                selection = nil
+            } label: {
+                if selection == nil {
+                    Label("No Team", systemImage: "checkmark")
+                } else {
+                    Text("No Team")
+                }
+            }
+            ForEach(teams, id: \.self) { team in
+                Button {
+                    selection = team
+                } label: {
+                    selection?.caseInsensitiveCompare(team) == .orderedSame
+                        ? Label(team, systemImage: "checkmark")
+                        : Label(team, systemImage: "circle")
+                }
+            }
+        } label: {
+            CompactPickerLabel(title: selection ?? "No Team")
+        }
+        .menuStyle(.borderlessButton)
+        .popover(isPresented: $isCreatingTeam, arrowEdge: .trailing) {
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Create Team")
+                    .font(.headline)
+                TextField("Team name", text: $draftName)
+                    .textFieldStyle(.roundedBorder)
+                    .focused($isNameFocused)
+                    .onSubmit(createTeam)
+                HStack {
+                    Spacer()
+                    Button("Cancel") { isCreatingTeam = false }
+                    Button("Create", action: createTeam)
+                        .keyboardShortcut(.defaultAction)
+                        .disabled(normalizedDraftName.isEmpty)
+                }
+            }
+            .padding(14)
+            .frame(width: 240)
+            .onAppear { isNameFocused = true }
+        }
+        .accessibilityLabel("Team")
+    }
+
+    private func createTeam() {
+        guard !normalizedDraftName.isEmpty else { return }
+        selection = normalizedDraftName
+        onCreate(normalizedDraftName)
+        isCreatingTeam = false
     }
 }
 

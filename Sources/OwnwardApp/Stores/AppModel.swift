@@ -174,10 +174,27 @@ final class AppModel {
     }
 
     var availableProjectTeams: [String] {
-        Set(scopedTasks.compactMap { task in
-            let value = task.team?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            return value.isEmpty ? nil : value
-        }).sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+        let scopedBoardIDs = Set(scopedTasks.map(\.boardID))
+        let boardTeams = snapshot.boards
+            .filter { scopedBoardIDs.contains($0.id) }
+            .flatMap(\.teams)
+        return normalizedTeamNames(boardTeams + scopedTasks.compactMap(\.team))
+    }
+
+    func teams(for task: TaskItem) -> [String] {
+        let boardTeams = snapshot.boards.first(where: { $0.id == task.boardID })?.teams ?? []
+        let taskTeams = snapshot.tasks
+            .filter { $0.boardID == task.boardID }
+            .compactMap(\.team)
+        return normalizedTeamNames(boardTeams + taskTeams)
+    }
+
+    func canonicalTeamName(_ name: String, for boardID: BoardID) -> String {
+        let normalized = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return "" }
+        return normalizedTeamNames(
+            (snapshot.boards.first(where: { $0.id == boardID })?.teams ?? [])
+        ).first(where: { $0.caseInsensitiveCompare(normalized) == .orderedSame }) ?? normalized
     }
 
     var availableProjectStatuses: [TaskStatus] {
@@ -208,6 +225,18 @@ final class AppModel {
                 let updated = try await repository.mutate { _ = try DomainEngine.createBoard(named: name, in: &$0) }
                 if let board = updated.boards.first(where: { $0.name.caseInsensitiveCompare(name.trimmingCharacters(in: .whitespacesAndNewlines)) == .orderedSame }) {
                     sidebarSelection = .board(board.id)
+                }
+            } catch {
+                apiError = error.localizedDescription
+            }
+        }
+    }
+
+    func createTeam(named name: String, on boardID: BoardID) {
+        Task {
+            do {
+                _ = try await repository.mutate {
+                    _ = try DomainEngine.createTeam(named: name, on: boardID, in: &$0)
                 }
             } catch {
                 apiError = error.localizedDescription
@@ -277,7 +306,9 @@ final class AppModel {
             _ = try? await repository.mutate { snapshot in
                 guard let index = snapshot.tasks.firstIndex(where: { $0.id == updated.id }) else { throw DomainError.taskNotFound }
                 let previousStatus = snapshot.tasks[index].status
+                let previousMiniTaskIDs = Set(snapshot.tasks[index].miniTasks.map(\.id))
                 var edited = updated
+                ChecklistEditor.normalize(&edited)
                 edited.status = previousStatus
                 edited.previousActiveStatus = snapshot.tasks[index].previousActiveStatus
                 snapshot.tasks[index] = edited
@@ -291,6 +322,8 @@ final class AppModel {
                 if updated.status != previousStatus {
                     try DomainEngine.move(taskID: updated.id, to: updated.status, in: &snapshot)
                 }
+                let deletedMiniTaskIDs = previousMiniTaskIDs.subtracting(Set(edited.miniTasks.map(\.id)))
+                ChecklistEditor.removeReferences(to: deletedMiniTaskIDs, from: &snapshot)
             }
         }
     }
@@ -299,8 +332,7 @@ final class AppModel {
         Task {
             _ = try? await repository.mutate { snapshot in
                 guard let index = snapshot.tasks.firstIndex(where: { $0.id == taskID }) else { throw DomainError.taskNotFound }
-                let mini = MiniTask(taskID: taskID, title: "New checklist item", order: snapshot.tasks[index].miniTasks.count)
-                snapshot.tasks[index].miniTasks.append(mini)
+                _ = ChecklistEditor.addItem(to: &snapshot.tasks[index], title: "New checklist item")
                 snapshot.tasks[index].updatedAt = Date()
             }
         }
@@ -308,6 +340,18 @@ final class AppModel {
 
     func addReference(from source: CompletionTarget, to target: CompletionTarget) {
         Task { _ = try? await repository.mutate { try DomainEngine.addReference(from: source, to: target, in: &$0) } }
+    }
+
+    private func normalizedTeamNames(_ names: [String]) -> [String] {
+        names.reduce(into: [String]()) { result, rawName in
+            let name = rawName.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !name.isEmpty,
+                  !result.contains(where: { $0.caseInsensitiveCompare(name) == .orderedSame }) else {
+                return
+            }
+            result.append(name)
+        }
+        .sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
     }
 
     func createJobRole(_ role: JobRole) {

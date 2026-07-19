@@ -101,6 +101,27 @@ private struct OwnwardAppearanceModifier: ViewModifier {
     }
 }
 
+private struct OwnwardHoverHighlightModifier: ViewModifier {
+    let cornerRadius: CGFloat
+    @Environment(\.ownwardTheme) private var theme
+    @State private var isHovered = false
+
+    func body(content: Content) -> some View {
+        content
+            .background {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .fill(isHovered ? theme.ink.opacity(0.045) : .clear)
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(isHovered ? theme.accent.opacity(0.16) : .clear, lineWidth: 1)
+            }
+            .onHover { hovering in
+                withAnimation(.easeOut(duration: 0.12)) { isHovered = hovering }
+            }
+    }
+}
+
 @MainActor
 enum OwnwardAppearanceCoordinator {
     static func apply(_ choice: AppThemeChoice) {
@@ -133,5 +154,9 @@ extension View {
     func ownwardAppearance(_ theme: OwnwardTheme) -> some View {
         environment(\.ownwardTheme, theme)
             .modifier(OwnwardAppearanceModifier(theme: theme))
+    }
+
+    func ownwardHoverHighlight(cornerRadius: CGFloat = 6) -> some View {
+        modifier(OwnwardHoverHighlightModifier(cornerRadius: cornerRadius))
     }
 }

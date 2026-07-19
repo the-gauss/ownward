@@ -61,6 +61,7 @@ struct KanbanView: View {
                         .padding(.horizontal, 12)
                         .frame(height: 30)
                         .background(theme.ink.opacity(0.075))
+                        .ownwardHoverHighlight(cornerRadius: 0)
                         .accessibilityLabel("\(lane.team), \(lane.count) tasks")
                         .accessibilityValue(collapsedTeams.contains(lane.id) ? "Collapsed" : "Expanded")
 
@@ -259,6 +260,7 @@ struct TaskRow: View {
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
         .background(model.selectedTaskID == task.id ? theme.accent.opacity(0.12) : .clear)
+        .ownwardHoverHighlight()
         .contentShape(Rectangle())
         .draggable(task.id.description)
         .contextMenu {

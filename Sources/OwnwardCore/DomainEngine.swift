@@ -8,6 +8,7 @@ public enum DomainError: Error, Equatable, LocalizedError {
     case invalidReference
     case invalidBoardName
     case boardAlreadyExists
+    case invalidTeamName
     case jobRoleNotFound
     case invalidJobRole
 
@@ -20,6 +21,7 @@ public enum DomainError: Error, Equatable, LocalizedError {
         case .invalidReference: "An item cannot reference itself."
         case .invalidBoardName: "A board name is required."
         case .boardAlreadyExists: "A board with that name already exists."
+        case .invalidTeamName: "A team name is required."
         case .jobRoleNotFound: "Job role not found."
         case .invalidJobRole: "An employer and role title are required."
         }
@@ -42,6 +44,31 @@ public enum DomainEngine {
         let board = Board(name: normalized)
         snapshot.boards.append(board)
         return board
+    }
+
+    @discardableResult
+    public static func createTeam(
+        named name: String,
+        on boardID: BoardID,
+        in snapshot: inout OwnwardSnapshot
+    ) throws -> String {
+        let normalized = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { throw DomainError.invalidTeamName }
+        guard let boardIndex = snapshot.boards.firstIndex(where: { $0.id == boardID }) else {
+            throw DomainError.boardNotFound
+        }
+
+        if let existing = snapshot.boards[boardIndex].teams.first(where: {
+            $0.caseInsensitiveCompare(normalized) == .orderedSame
+        }) {
+            return existing
+        }
+
+        snapshot.boards[boardIndex].teams.append(normalized)
+        snapshot.boards[boardIndex].teams.sort {
+            $0.localizedCaseInsensitiveCompare($1) == .orderedAscending
+        }
+        return normalized
     }
 
     public static func reorder(taskID: TaskID, before targetID: TaskID, in snapshot: inout OwnwardSnapshot) throws {

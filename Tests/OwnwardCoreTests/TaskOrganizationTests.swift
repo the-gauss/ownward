@@ -222,4 +222,59 @@ struct TaskOrganizationTests {
         #expect(groups[0].items.map(\.title) == ["First", "Second"])
         #expect(groups[1].category == "Math")
     }
+
+    @Test("checklist children follow the parent subtree and retain nesting")
+    func addsChecklistSubtaskAfterExistingDescendants() throws {
+        let board = Board(name: "Minkops")
+        var task = TaskItem(boardID: board.id, title: "Plan")
+        let parent = ChecklistEditor.addItem(to: &task, title: "Parent")
+        let existingChild = try ChecklistEditor.addSubtask(to: parent.id, in: &task, title: "Existing child")
+        _ = try ChecklistEditor.addSubtask(to: existingChild.id, in: &task, title: "Grandchild")
+
+        let newChild = try ChecklistEditor.addSubtask(to: parent.id, in: &task, title: "New child")
+
+        #expect(task.miniTasks.map(\.title) == ["Parent", "Existing child", "Grandchild", "New child"])
+        #expect(task.miniTasks.map(\.depth) == [0, 1, 2, 1])
+        #expect(task.miniTasks.map(\.order) == [0, 1, 2, 3])
+        #expect(newChild.taskID == task.id)
+    }
+
+    @Test("deleting a checklist item removes its descendants and normalizes order")
+    func deletesChecklistSubtree() throws {
+        let board = Board(name: "Minkops")
+        var task = TaskItem(boardID: board.id, title: "Plan")
+        let parent = ChecklistEditor.addItem(to: &task, title: "Parent")
+        let child = try ChecklistEditor.addSubtask(to: parent.id, in: &task, title: "Child")
+        _ = try ChecklistEditor.addSubtask(to: child.id, in: &task, title: "Grandchild")
+        let sibling = ChecklistEditor.addItem(to: &task, title: "Sibling")
+
+        let removed = try ChecklistEditor.removeItem(parent.id, from: &task)
+
+        #expect(removed.count == 3)
+        #expect(task.miniTasks.map(\.id) == [sibling.id])
+        #expect(task.miniTasks.map(\.order) == [0])
+        #expect(task.miniTasks.map(\.depth) == [0])
+    }
+
+    @Test("deleting a checklist subtree removes stale completion references")
+    func removesDeletedChecklistReferences() throws {
+        let board = Board(name: "Minkops")
+        var task = TaskItem(boardID: board.id, title: "Plan")
+        let parent = ChecklistEditor.addItem(to: &task, title: "Parent")
+        let child = try ChecklistEditor.addSubtask(to: parent.id, in: &task, title: "Child")
+        var otherTask = TaskItem(boardID: board.id, title: "Review")
+        let otherMiniTask = ChecklistEditor.addItem(to: &otherTask, title: "Review plan")
+        var snapshot = OwnwardSnapshot(boards: [board], tasks: [task, otherTask])
+        try DomainEngine.addReference(
+            from: .miniTask(child.id),
+            to: .miniTask(otherMiniTask.id),
+            in: &snapshot
+        )
+
+        let removed = try ChecklistEditor.removeItem(parent.id, from: &snapshot.tasks[0])
+        ChecklistEditor.removeReferences(to: Set(removed), from: &snapshot)
+
+        #expect(snapshot.referenceGroups.isEmpty)
+        #expect(snapshot.miniTask(id: otherMiniTask.id)?.isCompleted == false)
+    }
 }

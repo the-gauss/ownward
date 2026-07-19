@@ -127,6 +127,7 @@ struct TimelineView: View {
                     .padding(.horizontal, 8)
                     .frame(width: labelWidth, height: groupHeight)
                     .background(theme.ink.opacity(0.075))
+                    .ownwardHoverHighlight(cornerRadius: 0)
                     .accessibilityLabel("\(title), \(count) tasks")
                     .accessibilityValue(collapsedGroups.contains(title) ? "Collapsed" : "Expanded")
                 case .task(let task):
@@ -147,6 +148,7 @@ struct TimelineView: View {
                         .frame(width: labelWidth, height: taskHeight)
                         .contentShape(Rectangle())
                         .background(model.selectedTaskID == task.id ? theme.accent.opacity(0.12) : .clear)
+                        .ownwardHoverHighlight(cornerRadius: 0)
                     }
                     .buttonStyle(.plain)
                 }
@@ -282,16 +284,8 @@ private struct TimelineTaskBar: View {
     let color: Color
     @Environment(\.ownwardTheme) private var theme
     @State private var dragResolution: TimelineDragResolution?
-    @State private var hoveredEdge: TimelineDragOperation?
     private let calendar = Calendar.current
     private let resizeHandleWidth: CGFloat = 12
-
-    private var effectiveResizeHandleWidth: CGFloat {
-        CGFloat(TimelineDragMath.effectiveHandleWidth(
-            barWidth: Double(baseWidth),
-            handleWidth: Double(resizeHandleWidth)
-        ))
-    }
 
     private var dayDelta: Int {
         dragResolution?.dayDelta ?? 0
@@ -336,18 +330,15 @@ private struct TimelineTaskBar: View {
         }
         .frame(width: max(dayWidth - 8, previewWidth), height: 30)
         .overlay { RoundedRectangle(cornerRadius: 6).stroke(color.opacity(0.55)) }
-        .overlay(alignment: .leading) { resizeHandle(.resizeStart).allowsHitTesting(false) }
-        .overlay(alignment: .trailing) { resizeHandle(.resizeEnd).allowsHitTesting(false) }
+        .ownwardHoverHighlight()
         .contentShape(RoundedRectangle(cornerRadius: 6))
         .highPriorityGesture(dragGesture(barWidth: baseWidth))
         .onContinuousHover { phase in
             switch phase {
             case .active(let location):
                 let operation = operation(at: location.x, barWidth: baseWidth)
-                hoveredEdge = operation == .move ? nil : operation
                 if dragResolution == nil { setCursor(for: operation) }
             case .ended:
-                hoveredEdge = nil
                 if dragResolution == nil { NSCursor.arrow.set() }
             }
         }
@@ -367,17 +358,6 @@ private struct TimelineTaskBar: View {
         .accessibilityHint("Drag the bar to shift dates, or drag an edge to change one date.")
         .accessibilityAddTraits(.isButton)
         .accessibilityAction { model.selectedTaskID = task.id }
-    }
-
-    private func resizeHandle(_ operation: TimelineDragOperation) -> some View {
-        Capsule()
-            .fill(theme.ink.opacity(dragResolution?.operation == operation || hoveredEdge == operation ? 0.5 : 0.2))
-            .frame(width: effectiveResizeHandleWidth, height: 30)
-            .overlay {
-                Capsule()
-                    .fill(theme.ink.opacity(dragResolution?.operation == operation || hoveredEdge == operation ? 0.5 : 0.22))
-                    .frame(width: 5, height: 22)
-            }
     }
 
     private func dragGesture(barWidth: CGFloat) -> some Gesture {

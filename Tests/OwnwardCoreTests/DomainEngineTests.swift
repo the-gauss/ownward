@@ -70,6 +70,19 @@ struct DomainEngineTests {
         }
     }
 
+    @Test("teams are created once per board with a normalized display name")
+    func createsTeams() throws {
+        let board = Board(name: "Minkops Kanban", teams: ["Engineering"])
+        var snapshot = OwnwardSnapshot(boards: [board])
+
+        let created = try DomainEngine.createTeam(named: "  Product  ", on: board.id, in: &snapshot)
+        let duplicate = try DomainEngine.createTeam(named: "product", on: board.id, in: &snapshot)
+
+        #expect(created == "Product")
+        #expect(duplicate == "Product")
+        #expect(snapshot.boards[0].teams == ["Engineering", "Product"])
+    }
+
     @Test("manual reordering persists within a status lane")
     func reordersTasks() throws {
         let board = Board(name: "Minkops Kanban")

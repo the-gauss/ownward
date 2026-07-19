@@ -108,6 +108,7 @@ struct TaskTableView: View {
             .padding(.horizontal, 12)
             .frame(width: contentWidth, height: 42, alignment: .leading)
             .background(model.selectedTaskID == task.id ? theme.accent.opacity(0.12) : .clear)
+            .ownwardHoverHighlight()
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
