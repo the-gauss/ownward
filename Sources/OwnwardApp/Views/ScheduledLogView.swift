@@ -56,8 +56,8 @@ struct ScheduledLogView: View {
 
     private var subtitle: String {
         switch kind {
-        case .dailyDayStarter: "Most recent four daily runs"
-        case .weeklyCanadaRolesSearch: "Current and previous week"
+        case .dailyDayStarter: "Current daily run"
+        case .weeklyCanadaRolesSearch: "Current weekly run"
         }
     }
 }
@@ -97,6 +97,9 @@ private struct ScheduledLogMarkdownView: View {
                 .foregroundStyle(theme.ink)
                 .lineSpacing(3)
                 .textSelection(.enabled)
+
+        case let .table(table):
+            ScheduledLogMarkdownTableView(table: table, onToggleChecklist: onToggleChecklist)
 
         case let .checklistItem(item):
             HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -189,6 +192,67 @@ private struct ScheduledLogMarkdownView: View {
     }
 }
 
+private struct ScheduledLogMarkdownTableView: View {
+    let table: ScheduledLogMarkdownTable
+    let onToggleChecklist: (Int) -> Void
+    @Environment(\.ownwardTheme) private var theme
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
+            GridRow {
+                ForEach(Array(table.headers.enumerated()), id: \.offset) { _, header in
+                    MarkdownInlineText(markdown: header)
+                        .font(theme.uiFont(12, weight: .semibold))
+                        .foregroundStyle(theme.ink)
+                        .textSelection(.enabled)
+                }
+            }
+
+            Divider()
+                .gridCellColumns(table.headers.count)
+
+            ForEach(table.rows) { row in
+                GridRow {
+                    ForEach(row.cells.indices, id: \.self) { index in
+                        cell(row: row, at: index)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.vertical, 2)
+    }
+
+    @ViewBuilder
+    private func cell(row: ScheduledLogMarkdownTableRow, at index: Int) -> some View {
+        if row.checklistCellIndex == index, let item = row.checklistItem {
+            HStack(alignment: .firstTextBaseline, spacing: 6) {
+                Button { onToggleChecklist(item.id) } label: {
+                    Image(systemName: item.isCompleted ? "checkmark.square.fill" : "square")
+                        .foregroundStyle(item.isCompleted ? OwnwardTheme.success : .secondary)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel(item.isCompleted ? "Mark checklist item incomplete" : "Mark checklist item complete")
+                .help(item.isCompleted ? "Mark incomplete" : "Mark complete")
+
+                MarkdownInlineText(markdown: item.displayMarkdown)
+                    .font(theme.uiFont(13))
+                    .foregroundStyle(item.isCompleted ? .secondary : theme.ink)
+                    .strikethrough(item.isCompleted, color: .secondary)
+                    .lineSpacing(3)
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        } else {
+            MarkdownInlineText(markdown: row.cells[index])
+                .font(theme.uiFont(13))
+                .foregroundStyle(theme.ink)
+                .lineSpacing(3)
+                .textSelection(.enabled)
+        }
+    }
+}
+
 private struct MarkdownInlineText: View {
     let markdown: String
 
@@ -216,9 +280,23 @@ struct ScheduledLogChecklistItem: Identifiable, Equatable {
     }
 }
 
+struct ScheduledLogMarkdownTable: Identifiable, Equatable {
+    let id: Int
+    let headers: [String]
+    let rows: [ScheduledLogMarkdownTableRow]
+}
+
+struct ScheduledLogMarkdownTableRow: Identifiable, Equatable {
+    let id: Int
+    let cells: [String]
+    let checklistCellIndex: Int?
+    let checklistItem: ScheduledLogChecklistItem?
+}
+
 enum ScheduledLogMarkdownBlock: Identifiable, Equatable {
     case heading(Int, Int, String)
     case paragraph(Int, String)
+    case table(ScheduledLogMarkdownTable)
     case checklistItem(ScheduledLogChecklistItem)
     case unorderedListItem(Int, Int, String)
     case orderedListItem(Int, Int, String, String)
@@ -231,6 +309,8 @@ enum ScheduledLogMarkdownBlock: Identifiable, Equatable {
         case let .heading(id, _, _), let .paragraph(id, _), let .unorderedListItem(id, _, _),
              let .orderedListItem(id, _, _, _), let .quote(id, _), let .codeBlock(id, _, _), let .divider(id):
             id
+        case let .table(table):
+            table.id
         case let .checklistItem(item):
             item.id
         }
@@ -247,15 +327,27 @@ struct ScheduledLogMarkdownDocument {
     }
 
     var checklistItems: [ScheduledLogChecklistItem] {
+        blocks.reduce(into: []) { items, block in
+            switch block {
+            case let .checklistItem(item):
+                items.append(item)
+            case let .table(table):
+                items.append(contentsOf: table.rows.compactMap(\.checklistItem))
+            default:
+                break
+            }
+        }
+    }
+
+    var tables: [ScheduledLogMarkdownTable] {
         blocks.compactMap { block in
-            if case let .checklistItem(item) = block { return item }
+            if case let .table(table) = block { return table }
             return nil
         }
     }
 
     func togglingChecklist(at checklistID: Int) -> String? {
         guard lines.indices.contains(checklistID),
-              Self.listPrefix(for: lines[checklistID]) != nil,
               let range = Self.checkboxRange(in: lines[checklistID]) else {
             return nil
         }
@@ -317,20 +409,35 @@ struct ScheduledLogMarkdownDocument {
                 continue
             }
 
+            if let headerCells = tableCells(in: line),
+               lineIndex + 1 < lines.count,
+               let dividerCells = tableCells(in: lines[lineIndex + 1]),
+               headerCells.count == dividerCells.count,
+               dividerCells.allSatisfy(isTableDividerCell) {
+                flushParagraph()
+                let tableStart = lineIndex
+                lineIndex += 2
+                var rows: [ScheduledLogMarkdownTableRow] = []
+
+                while lineIndex < lines.count,
+                      let cells = tableCells(in: lines[lineIndex]),
+                      cells.count == headerCells.count {
+                    rows.append(tableRow(cells: cells, lineIndex: lineIndex))
+                    lineIndex += 1
+                }
+
+                blocks.append(.table(ScheduledLogMarkdownTable(
+                    id: tableStart,
+                    headers: headerCells,
+                    rows: rows
+                )))
+                continue
+            }
+
             if let list = listPrefix(for: line) {
                 flushParagraph()
-                if let checkbox = checkbox(in: list.content) {
-                    let prefix = String(list.content[..<checkbox.range.lowerBound])
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                    let content = String(list.content[checkbox.range.upperBound...])
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                    blocks.append(.checklistItem(ScheduledLogChecklistItem(
-                        id: lineIndex,
-                        depth: list.depth,
-                        prefixMarkdown: prefix,
-                        contentMarkdown: content,
-                        isCompleted: checkbox.isCompleted
-                    )))
+                if let item = checklistItem(in: list.content, id: lineIndex, depth: list.depth) {
+                    blocks.append(.checklistItem(item))
                 } else if list.isOrdered {
                     blocks.append(.orderedListItem(lineIndex, list.depth, list.marker, list.content))
                 } else {
@@ -379,6 +486,71 @@ struct ScheduledLogMarkdownDocument {
             return (marker, String(trimmed.dropFirst(marker.count)).trimmingCharacters(in: .whitespaces))
         }
         return nil
+    }
+
+    private static func tableCells(in line: String) -> [String]? {
+        var content = line.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard content.contains("|") else { return nil }
+        if content.first == "|" { content.removeFirst() }
+        if content.last == "|" { content.removeLast() }
+
+        var cells: [String] = []
+        var cell = ""
+        var isEscaped = false
+        for character in content {
+            if character == "|" && !isEscaped {
+                cells.append(cell.trimmingCharacters(in: .whitespaces))
+                cell = ""
+                continue
+            }
+            cell.append(character)
+            isEscaped = character == "\\" && !isEscaped
+            if character != "\\" { isEscaped = false }
+        }
+        cells.append(cell.trimmingCharacters(in: .whitespaces))
+        return cells.count > 1 ? cells : nil
+    }
+
+    private static func isTableDividerCell(_ cell: String) -> Bool {
+        var marker = cell.filter { !$0.isWhitespace }
+        if marker.first == ":" { marker.removeFirst() }
+        if marker.last == ":" { marker.removeLast() }
+        return marker.count >= 3 && marker.allSatisfy { $0 == "-" }
+    }
+
+    private static func tableRow(cells: [String], lineIndex: Int) -> ScheduledLogMarkdownTableRow {
+        for (index, cell) in cells.enumerated() {
+            let checklistContent = listPrefix(for: cell)?.content ?? cell
+            if let item = checklistItem(in: checklistContent, id: lineIndex, depth: 0) {
+                return ScheduledLogMarkdownTableRow(
+                    id: lineIndex,
+                    cells: cells,
+                    checklistCellIndex: index,
+                    checklistItem: item
+                )
+            }
+        }
+        return ScheduledLogMarkdownTableRow(
+            id: lineIndex,
+            cells: cells,
+            checklistCellIndex: nil,
+            checklistItem: nil
+        )
+    }
+
+    private static func checklistItem(in content: String, id: Int, depth: Int) -> ScheduledLogChecklistItem? {
+        guard let checkbox = checkbox(in: content) else { return nil }
+        let prefix = String(content[..<checkbox.range.lowerBound])
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        let itemContent = String(content[checkbox.range.upperBound...])
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        return ScheduledLogChecklistItem(
+            id: id,
+            depth: depth,
+            prefixMarkdown: prefix,
+            contentMarkdown: itemContent,
+            isCompleted: checkbox.isCompleted
+        )
     }
 
     private static func listPrefix(for line: String) -> ListPrefix? {

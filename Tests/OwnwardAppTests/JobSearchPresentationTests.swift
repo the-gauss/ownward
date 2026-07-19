@@ -68,6 +68,33 @@ struct JobSearchPresentationTests {
         #expect(toggledMarkdown.contains("**08:00** — [x] Review the design notes."))
     }
 
+    @Test("scheduled log Markdown tables render as rows and keep table checkboxes interactive")
+    func scheduledLogMarkdownTableDocument() throws {
+        let markdown = """
+        ## Today
+
+        | Time | Action | Source | Budget |
+        | --- | --- | --- | --- |
+        | 4:30–6:00 AM | - [ ] Review the design notes. | Minkops Kanban | 90 minutes |
+        | 6:30–8:00 AM | - [x] Record the solution pattern. | Myndral Kanban | 90 minutes |
+        """
+
+        let document = ScheduledLogMarkdownDocument(markdown: markdown)
+
+        let table = try #require(document.tables.first)
+        #expect(table.headers == ["Time", "Action", "Source", "Budget"])
+        #expect(table.rows.map(\.cells) == [
+            ["4:30–6:00 AM", "- [ ] Review the design notes.", "Minkops Kanban", "90 minutes"],
+            ["6:30–8:00 AM", "- [x] Record the solution pattern.", "Myndral Kanban", "90 minutes"],
+        ])
+        #expect(document.checklistItems.map(\.isCompleted) == [false, true])
+
+        let toggledMarkdown = try #require(document.togglingChecklist(at: document.checklistItems[0].id))
+        let toggled = ScheduledLogMarkdownDocument(markdown: toggledMarkdown)
+        #expect(toggled.checklistItems.map(\.isCompleted) == [true, true])
+        #expect(toggledMarkdown.contains("| 4:30–6:00 AM | - [x] Review the design notes."))
+    }
+
     @Test("scheduled log checkbox updates only its persisted markdown marker")
     @MainActor
     func scheduledLogChecklistPersistence() async throws {

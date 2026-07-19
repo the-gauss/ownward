@@ -43,38 +43,18 @@ public enum ScheduledLogRetention {
 
     public static func prune(
         _ entries: [ScheduledLogEntry],
-        now: Date = Date(),
-        calendar: Calendar = .autoupdatingCurrent
+        now _: Date = Date(),
+        calendar _: Calendar = .autoupdatingCurrent
     ) -> [ScheduledLogEntry] {
         let sorted = entries.sorted(by: newestFirst)
-        let daily = sorted.filter { $0.kind == .dailyDayStarter }.prefix(4)
-
-        var weekCalendar = calendar
-        weekCalendar.firstWeekday = 2
-        weekCalendar.minimumDaysInFirstWeek = 4
-        let currentWeek = weekKey(for: now, calendar: weekCalendar)
-        let previousWeekDate = weekCalendar.date(byAdding: .weekOfYear, value: -1, to: now) ?? now
-        let previousWeek = weekKey(for: previousWeekDate, calendar: weekCalendar)
-        let weekly = sorted.filter {
-            $0.kind == .weeklyCanadaRolesSearch
-                && [currentWeek, previousWeek].contains(weekKey(for: $0.createdAt, calendar: weekCalendar))
+        return ScheduledLogKind.allCases.compactMap { kind in
+            sorted.first { $0.kind == kind }
         }
-
-        return (daily + weekly).sorted(by: newestFirst)
+        .sorted(by: newestFirst)
     }
 
     private static func newestFirst(_ lhs: ScheduledLogEntry, _ rhs: ScheduledLogEntry) -> Bool {
         if lhs.createdAt != rhs.createdAt { return lhs.createdAt > rhs.createdAt }
         return lhs.id.uuidString > rhs.id.uuidString
     }
-
-    private static func weekKey(for date: Date, calendar: Calendar) -> WeekKey {
-        let components = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: date)
-        return WeekKey(year: components.yearForWeekOfYear ?? 0, week: components.weekOfYear ?? 0)
-    }
-}
-
-private struct WeekKey: Hashable {
-    var year: Int
-    var week: Int
 }

@@ -52,7 +52,7 @@ is locked.
 | `POST /v1/references` | Create or merge a bidirectional completion reference. |
 | `POST /v1/job-search/roles/upsert` | Idempotently insert or refresh a role by canonical posting URL, with employer/role/location fallback identity. |
 | `PATCH /v1/job-search/roles/{id}` | Update selected role fields and append a dated activity entry. Explicit JSON `null` clears nullable values. |
-| `POST /v1/scheduled-logs` | Persist a final scheduled-run Markdown response and trigger an Ownward notification. Daily runs retain four entries; weekly runs retain the current and previous ISO weeks. |
+| `POST /v1/scheduled-logs` | Persist a final scheduled-run Markdown response and trigger an Ownward notification. Each log retains only its current entry. |
 
 ## Reference semantics
 

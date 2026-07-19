@@ -13,7 +13,7 @@ struct APIRouterTests {
         }
     }
 
-    @Test("scheduled logs persist Markdown and enforce daily retention")
+    @Test("scheduled logs persist Markdown and retain only the current run per kind")
     func writesScheduledLogs() async throws {
         let repository = try WorkspaceRepository(inMemory: .empty)
         let notifier = RecordingScheduledLogNotifier()
@@ -34,8 +34,9 @@ struct APIRouterTests {
         }
 
         let logs = await repository.snapshot().scheduledLogs
-        #expect(logs.count == 4)
-        #expect(logs.allSatisfy { $0.kind == .dailyDayStarter })
+        #expect(logs.count == 1)
+        #expect(logs.first?.kind == .dailyDayStarter)
+        #expect(logs.first?.markdown == "# Daily 5")
         #expect((await notifier.entries).count == 5)
     }
 
