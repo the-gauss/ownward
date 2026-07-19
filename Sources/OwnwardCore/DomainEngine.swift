@@ -201,17 +201,21 @@ public enum DomainEngine {
         let currentEnd = existingEnd.map { calendar.startOfDay(for: $0) }
         switch edge {
         case .start:
-            snapshot.tasks[index].deadlineStart = if let existingEnd, let currentEnd, day > currentEnd {
+            let resizedStart = if let existingEnd, let currentEnd, day > currentEnd {
                 existingEnd
             } else {
                 day
             }
+            guard snapshot.tasks[index].deadlineStart != resizedStart else { return }
+            snapshot.tasks[index].deadlineStart = resizedStart
         case .end:
-            snapshot.tasks[index].deadlineEnd = if let existingStart, let currentStart, day < currentStart {
+            let resizedEnd = if let existingStart, let currentStart, day < currentStart {
                 existingStart
             } else {
                 day
             }
+            guard snapshot.tasks[index].deadlineEnd != resizedEnd else { return }
+            snapshot.tasks[index].deadlineEnd = resizedEnd
         }
         snapshot.tasks[index].updatedAt = Date()
     }

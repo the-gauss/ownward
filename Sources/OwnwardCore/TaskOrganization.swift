@@ -269,14 +269,34 @@ public enum TimelineDragOperation: Equatable, Sendable {
     case resizeEnd
 }
 
+public struct TimelineDragResolution: Equatable, Sendable {
+    public let operation: TimelineDragOperation
+    public let dayDelta: Int
+
+    public init(operation: TimelineDragOperation, dayDelta: Int) {
+        self.operation = operation
+        self.dayDelta = dayDelta
+    }
+}
+
 public enum TimelineDragMath {
+    public static func effectiveHandleWidth(
+        barWidth: Double,
+        handleWidth: Double,
+        minimumMoveWidth: Double = 10
+    ) -> Double {
+        let safeWidth = max(0, barWidth)
+        let maximumHandle = max(0, (safeWidth - max(0, minimumMoveWidth)) / 2)
+        return min(max(0, handleWidth), maximumHandle)
+    }
+
     public static func operation(
         at horizontalPosition: Double,
         barWidth: Double,
         handleWidth: Double
     ) -> TimelineDragOperation {
         let safeWidth = max(0, barWidth)
-        let safeHandle = min(max(0, handleWidth), safeWidth / 2)
+        let safeHandle = effectiveHandleWidth(barWidth: safeWidth, handleWidth: handleWidth)
         if horizontalPosition <= safeHandle { return .resizeStart }
         if horizontalPosition >= safeWidth - safeHandle { return .resizeEnd }
         return .move
@@ -296,6 +316,30 @@ public enum TimelineDragMath {
         case .resizeStart: return min(raw, maximumEdgeDelta)
         case .resizeEnd: return max(raw, -maximumEdgeDelta)
         }
+    }
+
+    public static func resolve(
+        startLocation: Double,
+        translation: Double,
+        barWidth: Double,
+        handleWidth: Double,
+        dayWidth: Double,
+        spanDays: Int
+    ) -> TimelineDragResolution {
+        let operation = operation(
+            at: startLocation,
+            barWidth: barWidth,
+            handleWidth: handleWidth
+        )
+        return TimelineDragResolution(
+            operation: operation,
+            dayDelta: dayDelta(
+                translation: translation,
+                dayWidth: dayWidth,
+                operation: operation,
+                spanDays: spanDays
+            )
+        )
     }
 }
 

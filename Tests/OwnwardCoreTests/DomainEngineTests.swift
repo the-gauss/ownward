@@ -118,4 +118,26 @@ struct DomainEngineTests {
         try DomainEngine.resizeSchedule(taskID: task.id, edge: .end, to: earlierEnd, calendar: calendar, in: &snapshot)
         #expect(snapshot.task(id: task.id)?.deadlineEnd == snapshot.task(id: task.id)?.deadlineStart)
     }
+
+    @Test("unchanged timeline dates leave the complete snapshot untouched")
+    func ignoresUnchangedTimelineDates() throws {
+        let calendar = Calendar(identifier: .gregorian)
+        let start = calendar.date(from: DateComponents(year: 2026, month: 7, day: 17))!
+        let end = calendar.date(byAdding: .day, value: 3, to: start)!
+        let board = Board(name: "Minkops Kanban")
+        let scheduled = TaskItem(
+            boardID: board.id,
+            title: "System Design",
+            deadlineStart: start,
+            deadlineEnd: end,
+            notesMarkdown: "Keep this note"
+        )
+        let unrelated = TaskItem(boardID: board.id, title: "Unrelated task", team: "Platform")
+        var snapshot = OwnwardSnapshot(boards: [board], tasks: [scheduled, unrelated])
+        let original = snapshot
+
+        try DomainEngine.resizeSchedule(taskID: scheduled.id, edge: .start, to: start, calendar: calendar, in: &snapshot)
+
+        #expect(snapshot == original)
+    }
 }
