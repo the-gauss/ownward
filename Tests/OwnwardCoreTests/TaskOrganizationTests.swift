@@ -75,6 +75,95 @@ struct TaskOrganizationTests {
         #expect(TimelineDragMath.operation(at: 4, barWidth: 160, handleWidth: 16) == .resizeStart)
         #expect(TimelineDragMath.operation(at: 80, barWidth: 160, handleWidth: 16) == .move)
         #expect(TimelineDragMath.operation(at: 156, barWidth: 160, handleWidth: 16) == .resizeEnd)
+        #expect(TimelineDragMath.operation(at: 8, barWidth: 26, handleWidth: 12) == .resizeStart)
+        #expect(TimelineDragMath.operation(at: 9, barWidth: 26, handleWidth: 12) == .move)
+        #expect(TimelineDragMath.operation(at: 18, barWidth: 26, handleWidth: 12) == .resizeEnd)
+    }
+
+    @Test("timeline drag resolution drives movement and both resize edges")
+    func resolvesTimelineDragOperations() {
+        let move = TimelineDragMath.resolve(
+            startLocation: 64,
+            translation: 68,
+            barWidth: 128,
+            handleWidth: 12,
+            dayWidth: 34,
+            spanDays: 4
+        )
+        let resizeStart = TimelineDragMath.resolve(
+            startLocation: 6,
+            translation: 34,
+            barWidth: 128,
+            handleWidth: 12,
+            dayWidth: 34,
+            spanDays: 4
+        )
+        let resizeEnd = TimelineDragMath.resolve(
+            startLocation: 122,
+            translation: -34,
+            barWidth: 128,
+            handleWidth: 12,
+            dayWidth: 34,
+            spanDays: 4
+        )
+        let oneDayMove = TimelineDragMath.resolve(
+            startLocation: 13,
+            translation: 34,
+            barWidth: 26,
+            handleWidth: 12,
+            dayWidth: 34,
+            spanDays: 1
+        )
+
+        #expect(move.operation == .move)
+        #expect(move.dayDelta == 2)
+        #expect(resizeStart.operation == .resizeStart)
+        #expect(resizeStart.dayDelta == 1)
+        #expect(resizeEnd.operation == .resizeEnd)
+        #expect(resizeEnd.dayDelta == -1)
+        #expect(oneDayMove.operation == .move)
+        #expect(oneDayMove.dayDelta == 1)
+    }
+
+    @Test("timeline drag resolution snaps and clamps resize deltas")
+    func snapsAndClampsTimelineDragResolution() {
+        let underThreshold = TimelineDragMath.resolve(
+            startLocation: 6,
+            translation: 16.9,
+            barWidth: 128,
+            handleWidth: 12,
+            dayWidth: 34,
+            spanDays: 4
+        )
+        let halfDay = TimelineDragMath.resolve(
+            startLocation: 122,
+            translation: -17,
+            barWidth: 128,
+            handleWidth: 12,
+            dayWidth: 34,
+            spanDays: 4
+        )
+        let clampedStart = TimelineDragMath.resolve(
+            startLocation: 6,
+            translation: 400,
+            barWidth: 128,
+            handleWidth: 12,
+            dayWidth: 34,
+            spanDays: 4
+        )
+        let clampedEnd = TimelineDragMath.resolve(
+            startLocation: 122,
+            translation: -400,
+            barWidth: 128,
+            handleWidth: 12,
+            dayWidth: 34,
+            spanDays: 4
+        )
+
+        #expect(underThreshold.dayDelta == 0)
+        #expect(halfDay.dayDelta == -1)
+        #expect(clampedStart.dayDelta == 3)
+        #expect(clampedEnd.dayDelta == -3)
     }
 
     @Test("project filters combine status, team, and schedule without hiding valid matches")

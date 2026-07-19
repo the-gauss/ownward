@@ -281,37 +281,45 @@ private struct TimelineTaskBar: View {
     let progress: Double
     let color: Color
     @Environment(\.ownwardTheme) private var theme
-    @State private var editMode: TimelineDragMode?
-    @State private var hoveredEdge: TimelineDragMode?
-    @State private var isMoveHovered = false
-    @State private var translation: CGFloat = 0
+    @State private var dragResolution: TimelineDragResolution?
+    @State private var hoveredEdge: TimelineDragOperation?
     private let calendar = Calendar.current
     private let resizeHandleWidth: CGFloat = 12
 
+    private var effectiveResizeHandleWidth: CGFloat {
+        CGFloat(TimelineDragMath.effectiveHandleWidth(
+            barWidth: Double(baseWidth),
+            handleWidth: Double(resizeHandleWidth)
+        ))
+    }
+
     private var dayDelta: Int {
-        TimelineDragMath.dayDelta(
-            translation: Double(translation),
-            dayWidth: Double(dayWidth),
-            operation: editMode?.operation ?? .move,
-            spanDays: spanDays
-        )
+        dragResolution?.dayDelta ?? 0
     }
     private var previewOffset: CGFloat {
-        switch editMode {
-        case .move: baseOffset + CGFloat(dayDelta) * dayWidth
-        case .resizeStart: baseOffset + CGFloat(dayDelta) * dayWidth
-        case .resizeEnd, .none: baseOffset
+        switch dragResolution?.operation {
+        case .move?, .resizeStart?: baseOffset + CGFloat(dayDelta) * dayWidth
+        case .resizeEnd?, .none: baseOffset
         }
     }
     private var previewWidth: CGFloat {
-        switch editMode {
-        case .resizeStart: baseWidth - CGFloat(dayDelta) * dayWidth
-        case .resizeEnd: baseWidth + CGFloat(dayDelta) * dayWidth
-        case .move, .none: baseWidth
+        switch dragResolution?.operation {
+        case .resizeStart?: baseWidth - CGFloat(dayDelta) * dayWidth
+        case .resizeEnd?: baseWidth + CGFloat(dayDelta) * dayWidth
+        case .move?, .none: baseWidth
         }
     }
 
     var body: some View {
+        HStack(spacing: 0) {
+            Color.clear
+                .frame(width: max(0, previewOffset), height: 30)
+                .allowsHitTesting(false)
+            bar
+        }
+    }
+
+    private var bar: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .fill(color.opacity(0.22))
@@ -328,22 +336,21 @@ private struct TimelineTaskBar: View {
         }
         .frame(width: max(dayWidth - 8, previewWidth), height: 30)
         .overlay { RoundedRectangle(cornerRadius: 6).stroke(color.opacity(0.55)) }
-        .overlay {
-            HStack(spacing: 0) {
-                resizeHandle(.resizeStart)
-                Rectangle()
-                    .fill(.clear)
-                    .contentShape(Rectangle())
-                    .highPriorityGesture(dragGesture(for: .move))
-                    .onHover { inside in
-                        isMoveHovered = inside
-                        if editMode == nil { inside ? NSCursor.openHand.set() : NSCursor.arrow.set() }
-                    }
-                resizeHandle(.resizeEnd)
+        .overlay(alignment: .leading) { resizeHandle(.resizeStart).allowsHitTesting(false) }
+        .overlay(alignment: .trailing) { resizeHandle(.resizeEnd).allowsHitTesting(false) }
+        .contentShape(RoundedRectangle(cornerRadius: 6))
+        .highPriorityGesture(dragGesture(barWidth: baseWidth))
+        .onContinuousHover { phase in
+            switch phase {
+            case .active(let location):
+                let operation = operation(at: location.x, barWidth: baseWidth)
+                hoveredEdge = operation == .move ? nil : operation
+                if dragResolution == nil { setCursor(for: operation) }
+            case .ended:
+                hoveredEdge = nil
+                if dragResolution == nil { NSCursor.arrow.set() }
             }
         }
-        .offset(x: previewOffset)
-        .contentShape(RoundedRectangle(cornerRadius: 6))
         .onTapGesture { model.selectedTaskID = task.id }
         .contextMenu {
             Button("Shift One Day Earlier") { model.shiftTaskDates(task.id, byDays: -1) }
@@ -362,55 +369,71 @@ private struct TimelineTaskBar: View {
         .accessibilityAction { model.selectedTaskID = task.id }
     }
 
-    private func resizeHandle(_ mode: TimelineDragMode) -> some View {
+    private func resizeHandle(_ operation: TimelineDragOperation) -> some View {
         Capsule()
-            .fill(theme.ink.opacity(editMode == mode || hoveredEdge == mode ? 0.5 : 0.2))
-            .frame(width: resizeHandleWidth, height: 30)
+            .fill(theme.ink.opacity(dragResolution?.operation == operation || hoveredEdge == operation ? 0.5 : 0.2))
+            .frame(width: effectiveResizeHandleWidth, height: 30)
             .overlay {
                 Capsule()
-                    .fill(theme.ink.opacity(editMode == mode || hoveredEdge == mode ? 0.5 : 0.22))
+                    .fill(theme.ink.opacity(dragResolution?.operation == operation || hoveredEdge == operation ? 0.5 : 0.22))
                     .frame(width: 5, height: 22)
-            }
-            .contentShape(Rectangle())
-            .highPriorityGesture(dragGesture(for: mode))
-            .onHover { inside in
-                hoveredEdge = inside ? mode : nil
-                if inside { NSCursor.resizeLeftRight.set() } else { NSCursor.arrow.set() }
             }
     }
 
-    private func dragGesture(for mode: TimelineDragMode) -> some Gesture {
+    private func dragGesture(barWidth: CGFloat) -> some Gesture {
         DragGesture(minimumDistance: 2)
             .onChanged { value in
-                editMode = mode
-                translation = value.translation.width
-                mode == .move ? NSCursor.closedHand.set() : NSCursor.resizeLeftRight.set()
+                let resolution = resolveDrag(value, barWidth: barWidth)
+                dragResolution = resolution
+                setCursor(for: resolution.operation, isDragging: true)
             }
             .onEnded { value in
-                let delta = TimelineDragMath.dayDelta(
-                    translation: Double(value.translation.width),
-                    dayWidth: Double(dayWidth),
-                    operation: mode.operation,
-                    spanDays: spanDays
-                )
-                switch mode {
-                case .move:
-                    model.shiftTaskDates(task.id, byDays: delta)
-                case .resizeStart:
-                    if let date = calendar.date(byAdding: .day, value: delta, to: start) {
-                        model.resizeTaskDates(task.id, edge: .start, to: date)
-                    }
-                case .resizeEnd:
-                    if let date = calendar.date(byAdding: .day, value: delta, to: end) {
-                        model.resizeTaskDates(task.id, edge: .end, to: date)
+                let resolution = resolveDrag(value, barWidth: barWidth)
+                if resolution.dayDelta != 0 {
+                    switch resolution.operation {
+                    case .move:
+                        model.shiftTaskDates(task.id, byDays: resolution.dayDelta)
+                    case .resizeStart:
+                        if let date = calendar.date(byAdding: .day, value: resolution.dayDelta, to: start) {
+                            model.resizeTaskDates(task.id, edge: .start, to: date)
+                        }
+                    case .resizeEnd:
+                        if let date = calendar.date(byAdding: .day, value: resolution.dayDelta, to: end) {
+                            model.resizeTaskDates(task.id, edge: .end, to: date)
+                        }
                     }
                 }
-                editMode = nil
-                translation = 0
-                if mode == .move, isMoveHovered { NSCursor.openHand.set() }
-                else if hoveredEdge == mode { NSCursor.resizeLeftRight.set() }
-                else { NSCursor.arrow.set() }
+                dragResolution = nil
+                NSCursor.arrow.set()
             }
+    }
+
+    private func resolveDrag(_ value: DragGesture.Value, barWidth: CGFloat) -> TimelineDragResolution {
+        TimelineDragMath.resolve(
+            startLocation: Double(value.startLocation.x),
+            translation: Double(value.translation.width),
+            barWidth: Double(barWidth),
+            handleWidth: Double(resizeHandleWidth),
+            dayWidth: Double(dayWidth),
+            spanDays: spanDays
+        )
+    }
+
+    private func operation(at horizontalPosition: CGFloat, barWidth: CGFloat) -> TimelineDragOperation {
+        TimelineDragMath.operation(
+            at: Double(horizontalPosition),
+            barWidth: Double(barWidth),
+            handleWidth: Double(resizeHandleWidth)
+        )
+    }
+
+    private func setCursor(for operation: TimelineDragOperation, isDragging: Bool = false) {
+        switch operation {
+        case .move:
+            isDragging ? NSCursor.closedHand.set() : NSCursor.openHand.set()
+        case .resizeStart, .resizeEnd:
+            NSCursor.resizeLeftRight.set()
+        }
     }
 
     private var dateRange: String {
@@ -420,20 +443,6 @@ private struct TimelineTaskBar: View {
     private func resize(_ edge: TimelineEdge, date: Date, byDays days: Int) {
         guard let adjusted = calendar.date(byAdding: .day, value: days, to: date) else { return }
         model.resizeTaskDates(task.id, edge: edge, to: adjusted)
-    }
-}
-
-private enum TimelineDragMode {
-    case move
-    case resizeStart
-    case resizeEnd
-
-    var operation: TimelineDragOperation {
-        switch self {
-        case .move: .move
-        case .resizeStart: .resizeStart
-        case .resizeEnd: .resizeEnd
-        }
     }
 }
 

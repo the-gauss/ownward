@@ -4,7 +4,9 @@ import OwnwardCore
 
 struct InspectorView: View {
     @Bindable var model: AppModel
+    let task: TaskItem
     @State private var draft: TaskItem
+    @State private var savedDraft: TaskItem
     @State private var hasDeadline: Bool
     @State private var referenceSource: CompletionTarget
     @State private var referenceTarget: CompletionTarget?
@@ -17,7 +19,9 @@ struct InspectorView: View {
 
     init(model: AppModel, task: TaskItem) {
         self.model = model
+        self.task = task
         _draft = State(initialValue: task)
+        _savedDraft = State(initialValue: task)
         _hasDeadline = State(initialValue: task.deadlineStart != nil || task.deadlineEnd != nil)
         _referenceSource = State(initialValue: .task(task.id))
     }
@@ -114,7 +118,7 @@ struct InspectorView: View {
                         }
                     }
                     if draft.miniTasks.count > 8 {
-                        Button(showsAllChecklistItems ? "Show Less" : "Show \(draft.miniTasks.count - 8) More") {
+                        Button(checklistVisibilityTitle) {
                             withAnimation(.easeInOut(duration: 0.18)) { showsAllChecklistItems.toggle() }
                         }
                         .buttonStyle(.plain)
@@ -216,7 +220,14 @@ struct InspectorView: View {
             }
         }
         .background(theme.isSystem ? AnyShapeStyle(.thinMaterial) : AnyShapeStyle(theme.surface))
+        .background {
+            InspectorScheduleSynchronizer(task: task, draft: $draft, savedDraft: $savedDraft, hasDeadline: $hasDeadline)
+        }
         .onDisappear { save() }
+    }
+
+    private var checklistVisibilityTitle: String {
+        showsAllChecklistItems ? "Show Less" : "Show \(draft.miniTasks.count - 8) More"
     }
 
     private var startDateBinding: Binding<Date> {
@@ -326,8 +337,38 @@ struct InspectorView: View {
         DispatchQueue.main.async { focusedMiniTaskID = mini.id }
     }
     private func save() {
-        if !hasDeadline { draft.deadlineStart = nil; draft.deadlineEnd = nil }
-        model.updateTask(draft)
+        var taskToSave = draft
+        if !hasDeadline { taskToSave.deadlineStart = nil; taskToSave.deadlineEnd = nil }
+        guard taskToSave != savedDraft else { return }
+        draft = taskToSave
+        savedDraft = taskToSave
+        model.updateTask(taskToSave)
+    }
+}
+
+private struct InspectorScheduleSynchronizer: View {
+    let task: TaskItem
+    @Binding var draft: TaskItem
+    @Binding var savedDraft: TaskItem
+    @Binding var hasDeadline: Bool
+
+    var body: some View {
+        Color.clear
+            .allowsHitTesting(false)
+            .onChange(of: task.deadlineStart) { _, start in
+                synchronize(start: start, end: task.deadlineEnd)
+            }
+            .onChange(of: task.deadlineEnd) { _, end in
+                synchronize(start: task.deadlineStart, end: end)
+            }
+    }
+
+    private func synchronize(start: Date?, end: Date?) {
+        draft.deadlineStart = start
+        draft.deadlineEnd = end
+        savedDraft.deadlineStart = start
+        savedDraft.deadlineEnd = end
+        hasDeadline = start != nil || end != nil
     }
 }
 
