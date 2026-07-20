@@ -35,7 +35,14 @@ struct SnapshotPersistenceTests {
             schemaVersion: SnapshotMigrator.currentSchemaVersion,
             jobSearch: JobSearchWorkspace(
                 roles: [role],
-                activities: [JobActivity(roleID: role.id, kind: .created, detail: "Imported once")]
+                activities: [JobActivity(roleID: role.id, kind: .created, detail: "Imported once")],
+                contacts: [JobSearchContact(
+                    name: "Avery Chen",
+                    company: "Wesway",
+                    email: "avery@example.ca",
+                    usefulness: .useful,
+                    relationshipLevel: 4
+                )]
             )
         )
 
@@ -45,6 +52,71 @@ struct SnapshotPersistenceTests {
         )
 
         #expect(decoded == snapshot)
+    }
+
+    @Test("a pre-directory job-search workspace decodes with an empty contact directory")
+    func legacyJobSearchWorkspaceDefaultsContacts() throws {
+        let legacy = Data("""
+        {"roles":[],"activities":[]}
+        """.utf8)
+
+        let decoded = try JSONDecoder.ownward.decode(JobSearchWorkspace.self, from: legacy)
+
+        #expect(decoded.contacts.isEmpty)
+    }
+
+    @Test("migration backfills the contact directory from previously stored role contacts")
+    func migrationBackfillsContactDirectory() throws {
+        let updatedAt = Date(timeIntervalSince1970: 1_800_000_000)
+        let createdAt = updatedAt.addingTimeInterval(-7 * 86_400)
+        var role = JobRole(
+            track: .backup,
+            employer: "Wesway",
+            role: "Data Specialist",
+            createdAt: createdAt,
+            updatedAt: updatedAt
+        )
+        role.contacts = [JobContact(
+            name: "Avery Chen",
+            titleOrDepartment: "Recruitment",
+            email: "avery@example.ca",
+            sourceURL: "https://example.ca/team/avery",
+            confidence: "Public company profile"
+        )]
+
+        let migrated = SnapshotMigrator.upgrade(OwnwardSnapshot(
+            schemaVersion: 6,
+            jobSearch: JobSearchWorkspace(roles: [role])
+        ))
+
+        let contact = try #require(migrated.jobSearch.contacts.first)
+        #expect(migrated.schemaVersion == SnapshotMigrator.currentSchemaVersion)
+        #expect(contact.company == "Wesway")
+        #expect(contact.opportunities.map(\.roleID) == [role.id])
+        #expect(contact.firstSeenAt == createdAt)
+        #expect(contact.lastSeenAt == updatedAt)
+    }
+
+    @Test("migration omits no-contact placeholders while retaining user-edited records")
+    func migrationRemovesPlaceholderContacts() {
+        let placeholder = JobSearchContact(
+            name: "No verified public contact found",
+            company: "Example County",
+            sourceURLs: ["https://example.ca/posting"]
+        )
+        let userEdited = JobSearchContact(
+            name: "None",
+            company: "Example County",
+            usefulness: .notUseful,
+            notes: "Confirmed there is no contact route."
+        )
+
+        let migrated = SnapshotMigrator.upgrade(OwnwardSnapshot(
+            schemaVersion: 7,
+            jobSearch: JobSearchWorkspace(contacts: [placeholder, userEdited])
+        ))
+
+        #expect(migrated.jobSearch.contacts.map(\.id) == [userEdited.id])
     }
 
     @Test("pre-job-search snapshots decode with an empty durable workspace")

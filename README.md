@@ -31,6 +31,9 @@ Job Search includes:
 
 - A responsive opportunity list that progressively reveals columns as the
   window grows, with native search, track filters, sorting, and focused smart views.
+- A dedicated Contacts Directory that accumulates public contacts across weekly
+  searches, preserves user-owned relationship history, and supports search,
+  usefulness/response/level/follow-up filters, grouping, and sorting.
 - A selection-driven inspector for application state, posting details, public
   contacts, outreach guidance, evidence, linked project tasks, and immutable activity history.
 - A single **Show Resume in Finder** action that resolves the role's recorded

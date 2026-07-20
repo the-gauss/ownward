@@ -126,6 +126,7 @@ struct JobSearchPresentationTests {
     func workspaceCommandScope() {
         #expect(WorkspaceMode.projectManagement.supportsProjectControls)
         #expect(!WorkspaceMode.jobSearch.supportsProjectControls)
+        #expect(JobSearchSidebarSelection.contactsDirectory.title == "Contacts Directory")
     }
 
     @Test("a linked application task opens in its Project Management destination")

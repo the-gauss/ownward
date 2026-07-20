@@ -227,6 +227,96 @@ struct JobSearchTests {
         #expect(appliedAction.date == followUp)
     }
 
+    @Test("weekly contact refreshes build one durable directory record without replacing relationship history")
+    func contactDirectoryAccumulatesAcrossWeeklyRefreshes() throws {
+        let firstSeen = Date(timeIntervalSince1970: 1_800_000_000)
+        let refresh = firstSeen.addingTimeInterval(7 * 86_400)
+        var role = sampleRole(createdAt: firstSeen)
+        role.contacts = [JobContact(
+            name: "Avery Chen",
+            titleOrDepartment: "Talent Acquisition",
+            email: "avery@example.ca",
+            sourceURL: "https://example.ca/team/avery",
+            confidence: "Public company profile",
+            isPrimary: true
+        )]
+        var workspace = JobSearchWorkspace()
+
+        _ = try JobSearchEngine.upsert(role, in: &workspace, at: firstSeen)
+        #expect(workspace.contacts.count == 1)
+        #expect(workspace.contacts[0].company == "Example County")
+        #expect(workspace.contacts[0].relationshipLevel == 1)
+        #expect(workspace.contacts[0].opportunities.map(\.roleID) == [workspace.roles[0].id])
+
+        var relationship = workspace.contacts[0]
+        relationship.usefulness = .useful
+        relationship.responseStatus = .responded
+        relationship.relationshipLevel = 5
+        relationship.lastContactedAt = firstSeen.addingTimeInterval(86_400)
+        relationship.lastRespondedAt = firstSeen.addingTimeInterval(2 * 86_400)
+        relationship.notes = "Thoughtful multi-day conversation about the analytics team."
+        try JobSearchEngine.saveContact(relationship, in: &workspace, at: relationship.lastRespondedAt!)
+
+        role.contacts = [JobContact(
+            name: "Avery Chen",
+            titleOrDepartment: "Senior Talent Partner",
+            email: "avery@example.ca",
+            sourceURL: "https://example.ca/careers/contact",
+            confidence: "Official careers page"
+        )]
+        _ = try JobSearchEngine.upsert(role, in: &workspace, at: refresh)
+
+        let contact = try #require(workspace.contacts.first)
+        #expect(workspace.contacts.count == 1)
+        #expect(contact.titleOrDepartment == "Senior Talent Partner")
+        #expect(contact.sourceURLs == [
+            "https://example.ca/team/avery",
+            "https://example.ca/careers/contact",
+        ])
+        #expect(contact.usefulness == .useful)
+        #expect(contact.responseStatus == .responded)
+        #expect(contact.relationshipLevel == 5)
+        #expect(contact.notes == "Thoughtful multi-day conversation about the analytics team.")
+        #expect(contact.firstSeenAt == firstSeen)
+        #expect(contact.lastSeenAt == refresh)
+    }
+
+    @Test("contact directory searches, filters, sorts, and labels useful groups")
+    func contactDirectoryOrganization() {
+        let now = Date(timeIntervalSince1970: 1_800_000_000)
+        let engaged = JobSearchContact(
+            name: "Avery Chen",
+            company: "Example County",
+            titleOrDepartment: "Talent Acquisition",
+            email: "avery@example.ca",
+            usefulness: .useful,
+            responseStatus: .responded,
+            relationshipLevel: 5,
+            lastRespondedAt: now
+        )
+        let waiting = JobSearchContact(
+            name: "Morgan Patel",
+            company: "Northwind Labs",
+            titleOrDepartment: "Engineering",
+            phone: "555-0100",
+            usefulness: .notUseful,
+            responseStatus: .noResponse,
+            relationshipLevel: 0,
+            lastContactedAt: now.addingTimeInterval(-86_400)
+        )
+
+        let responded = JobSearchContactOrganizer.contacts(
+            [waiting, engaged],
+            filter: JobSearchContactFilter(responseStatus: .responded),
+            sort: .relationshipLevel
+        )
+        #expect(responded.map(\.name) == ["Avery Chen"])
+        #expect(JobSearchContactOrganizer.contacts([waiting, engaged], search: "engineering").map(\.id) == [waiting.id])
+        #expect(JobSearchContactOrganizer.contacts([waiting, engaged], sort: .relationshipLevel).map(\.id) == [engaged.id, waiting.id])
+        #expect(JobSearchContactGroup.department.title(for: engaged) == "Talent Acquisition")
+        #expect(JobSearchContactGroup.relationshipLevel.title(for: waiting) == "Level 0 — Ghosted")
+    }
+
     private func sampleRole(createdAt: Date) -> JobRole {
         JobRole(
             track: .backup,

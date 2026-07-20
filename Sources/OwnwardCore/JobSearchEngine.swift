@@ -33,6 +33,7 @@ public enum JobSearchEngine {
             verified.stage = preservedStage(existing: existing, incoming: verified.stage)
             enforceApplicationInvariant(&verified)
             workspace.roles[index] = verified
+            synchronizeDirectoryContacts(for: verified, in: &workspace, at: date)
             workspace.activities.append(JobActivity(
                 roleID: verified.id,
                 date: date,
@@ -46,6 +47,7 @@ public enum JobSearchEngine {
         verified.updatedAt = date
         enforceApplicationInvariant(&verified)
         workspace.roles.append(verified)
+        synchronizeDirectoryContacts(for: verified, in: &workspace, at: date)
         workspace.activities.append(JobActivity(
             roleID: verified.id,
             date: date,
@@ -75,6 +77,9 @@ public enum JobSearchEngine {
         guard role != existingRole else { return }
         role.updatedAt = date
         workspace.roles[index] = role
+        if patch.contacts != nil {
+            synchronizeDirectoryContacts(for: role, in: &workspace, at: date)
+        }
         workspace.activities.append(JobActivity(
             roleID: roleID,
             date: date,
@@ -100,6 +105,7 @@ public enum JobSearchEngine {
         try validate(normalized)
         enforceApplicationInvariant(&normalized)
         workspace.roles[index] = normalized
+        synchronizeDirectoryContacts(for: normalized, in: &workspace, at: date)
         workspace.activities.append(JobActivity(
             roleID: edited.id,
             date: date,
@@ -108,8 +114,67 @@ public enum JobSearchEngine {
         ))
     }
 
+    /// Backfills contact records from already-persisted roles during a schema
+    /// upgrade. It only adds or refreshes research facts; relationship history
+    /// stored in the directory remains user-owned.
+    public static func reconcileContactDirectory(in workspace: inout JobSearchWorkspace) {
+        for role in workspace.roles {
+            synchronizeDirectoryContacts(
+                for: role,
+                in: &workspace,
+                at: role.updatedAt,
+                firstSeenAt: role.createdAt
+            )
+        }
+    }
+
+    /// Removes legacy "no contact found" placeholders that earlier research
+    /// records encoded as contacts. Human-edited records are deliberately kept.
+    public static func removePlaceholderDirectoryContacts(in workspace: inout JobSearchWorkspace) {
+        workspace.contacts.removeAll { contact in
+            isDirectoryPlaceholder(name: contact.name, titleOrDepartment: contact.titleOrDepartment)
+                && contact.usefulness == .unknown
+                && contact.responseStatus == .notContacted
+                && contact.relationshipLevel == 1
+                && contact.firstContactedAt == nil
+                && contact.lastContactedAt == nil
+                && contact.lastRespondedAt == nil
+                && contact.nextFollowUpDate == nil
+                && contact.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    public static func saveContact(
+        _ edited: JobSearchContact,
+        in workspace: inout JobSearchWorkspace,
+        at date: Date = Date()
+    ) throws {
+        var normalized = edited
+        normalize(&normalized)
+        try validate(normalized)
+
+        if let index = workspace.contacts.firstIndex(where: { $0.id == normalized.id }) {
+            let existing = workspace.contacts[index]
+            normalized.createdAt = existing.createdAt
+            normalized.firstSeenAt = min(existing.firstSeenAt, normalized.firstSeenAt)
+            normalized.lastSeenAt = max(existing.lastSeenAt, normalized.lastSeenAt)
+            normalized.opportunities = existing.opportunities
+            normalized.updatedAt = date
+            workspace.contacts[index] = normalized
+            return
+        }
+
+        normalized.createdAt = min(normalized.createdAt, date)
+        normalized.updatedAt = date
+        workspace.contacts.append(normalized)
+    }
+
     private static func validate(_ role: JobRole) throws {
         guard !role.employer.isEmpty, !role.role.isEmpty else { throw DomainError.invalidJobRole }
+    }
+
+    private static func validate(_ contact: JobSearchContact) throws {
+        guard !contact.name.isEmpty || contact.hasRoute else { throw DomainError.invalidJobContact }
     }
 
     private static func normalize(_ role: inout JobRole) {
@@ -120,6 +185,18 @@ public enum JobSearchEngine {
         role.location.workArrangement = role.location.workArrangement.trimmingCharacters(in: .whitespacesAndNewlines)
         role.posting.jobURL = role.posting.jobURL.trimmingCharacters(in: .whitespacesAndNewlines)
         role.posting.officialCareersURL = role.posting.officialCareersURL.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func normalize(_ contact: inout JobSearchContact) {
+        contact.name = contact.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        contact.company = contact.company.trimmingCharacters(in: .whitespacesAndNewlines)
+        contact.titleOrDepartment = contact.titleOrDepartment.trimmingCharacters(in: .whitespacesAndNewlines)
+        contact.email = contact.email.trimmingCharacters(in: .whitespacesAndNewlines)
+        contact.phone = contact.phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        contact.confidence = contact.confidence.trimmingCharacters(in: .whitespacesAndNewlines)
+        contact.notes = contact.notes.trimmingCharacters(in: .whitespacesAndNewlines)
+        contact.sourceURLs = uniqueNonempty(contact.sourceURLs)
+        contact.relationshipLevel = min(5, max(0, contact.relationshipLevel))
     }
 
     private static func preservedStage(existing: JobRole, incoming: JobStage) -> JobStage {
@@ -172,6 +249,174 @@ public enum JobSearchEngine {
 
     private static func isEmpty(_ value: JobResume) -> Bool {
         value.sourcePath.isEmpty && value.factCheckStatus.isEmpty && value.lastReviewed == nil
+    }
+
+    private static func synchronizeDirectoryContacts(
+        for role: JobRole,
+        in workspace: inout JobSearchWorkspace,
+        at date: Date,
+        firstSeenAt: Date? = nil
+    ) {
+        for imported in role.contacts where hasDirectoryValue(imported) {
+            let incoming = directoryContact(
+                from: imported,
+                role: role,
+                firstSeenAt: firstSeenAt ?? date,
+                lastSeenAt: date
+            )
+            if let index = workspace.contacts.firstIndex(where: { matches($0, incoming) }) {
+                workspace.contacts[index] = merging(incoming, over: workspace.contacts[index], at: date)
+            } else {
+                workspace.contacts.append(incoming)
+            }
+        }
+    }
+
+    private static func directoryContact(
+        from contact: JobContact,
+        role: JobRole,
+        firstSeenAt: Date,
+        lastSeenAt: Date
+    ) -> JobSearchContact {
+        let opportunity = JobContactOpportunity(
+            roleID: role.id,
+            company: role.employer,
+            roleTitle: role.role,
+            department: contact.titleOrDepartment,
+            location: role.location,
+            track: role.track,
+            firstSeenAt: firstSeenAt,
+            lastSeenAt: lastSeenAt
+        )
+        return JobSearchContact(
+            name: contact.name,
+            company: role.employer,
+            titleOrDepartment: contact.titleOrDepartment,
+            email: contact.email,
+            phone: contact.phone,
+            sourceURLs: contact.sourceURL.isEmpty ? [] : [contact.sourceURL],
+            confidence: contact.confidence,
+            isPrimary: contact.isPrimary,
+            firstSeenAt: firstSeenAt,
+            lastSeenAt: lastSeenAt,
+            opportunities: [opportunity],
+            createdAt: firstSeenAt,
+            updatedAt: lastSeenAt
+        )
+    }
+
+    private static func merging(
+        _ incoming: JobSearchContact,
+        over existing: JobSearchContact,
+        at date: Date
+    ) -> JobSearchContact {
+        var merged = existing
+        merged.name = incoming.name.isEmpty ? existing.name : incoming.name
+        merged.company = existing.company.isEmpty ? incoming.company : existing.company
+        merged.titleOrDepartment = incoming.titleOrDepartment.isEmpty
+            ? existing.titleOrDepartment
+            : incoming.titleOrDepartment
+        merged.email = incoming.email.isEmpty ? existing.email : incoming.email
+        merged.phone = incoming.phone.isEmpty ? existing.phone : incoming.phone
+        merged.sourceURLs = uniqueNonempty(existing.sourceURLs + incoming.sourceURLs)
+        merged.confidence = incoming.confidence.isEmpty ? existing.confidence : incoming.confidence
+        merged.isPrimary = existing.isPrimary || incoming.isPrimary
+        merged.firstSeenAt = min(existing.firstSeenAt, incoming.firstSeenAt)
+        merged.lastSeenAt = max(existing.lastSeenAt, incoming.lastSeenAt)
+        merged.opportunities = merging(incoming.opportunities, over: existing.opportunities, at: date)
+        merged.updatedAt = date
+        return merged
+    }
+
+    private static func merging(
+        _ incoming: [JobContactOpportunity],
+        over existing: [JobContactOpportunity],
+        at date: Date
+    ) -> [JobContactOpportunity] {
+        var merged = existing
+        for opportunity in incoming {
+            if let index = merged.firstIndex(where: { $0.roleID == opportunity.roleID }) {
+                var refreshed = opportunity
+                refreshed.firstSeenAt = min(merged[index].firstSeenAt, opportunity.firstSeenAt)
+                refreshed.lastSeenAt = max(merged[index].lastSeenAt, date)
+                merged[index] = refreshed
+            } else {
+                merged.append(opportunity)
+            }
+        }
+        return merged
+    }
+
+    private static func matches(_ left: JobSearchContact, _ right: JobSearchContact) -> Bool {
+        let leftEmail = normalizedEmail(left.email)
+        let rightEmail = normalizedEmail(right.email)
+        if !leftEmail.isEmpty, leftEmail == rightEmail { return true }
+
+        let leftPhone = normalizedPhone(left.phone)
+        let rightPhone = normalizedPhone(right.phone)
+        if !leftPhone.isEmpty, leftPhone == rightPhone { return true }
+
+        let sameCompany = normalizedText(left.company) == normalizedText(right.company)
+        let leftName = normalizedText(left.name)
+        let rightName = normalizedText(right.name)
+        if sameCompany, !leftName.isEmpty, leftName == rightName { return true }
+
+        return sameCompany && !Set(left.sourceURLs.map(normalizedURL)).isDisjoint(
+            with: Set(right.sourceURLs.map(normalizedURL))
+        )
+    }
+
+    private static func hasDirectoryValue(_ contact: JobContact) -> Bool {
+        guard !isDirectoryPlaceholder(name: contact.name, titleOrDepartment: contact.titleOrDepartment) else {
+            return false
+        }
+        return [contact.name, contact.titleOrDepartment, contact.email, contact.phone, contact.sourceURL]
+            .contains { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
+    private static func isDirectoryPlaceholder(name: String, titleOrDepartment: String) -> Bool {
+        let normalizedName = normalizedText(name)
+        let normalizedTitle = normalizedText(titleOrDepartment)
+        return [
+            "none",
+            "n/a",
+            "na",
+            "not available",
+            "no contact found",
+            "no verified public contact found",
+        ].contains(normalizedName) || [
+            "no contact found",
+            "no verified public contact found",
+        ].contains(normalizedTitle)
+    }
+
+    private static func uniqueNonempty(_ values: [String]) -> [String] {
+        values.reduce(into: [String]()) { result, raw in
+            let value = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !value.isEmpty,
+                  !result.contains(where: { normalizedURL($0) == normalizedURL(value) }) else {
+                return
+            }
+            result.append(value)
+        }
+    }
+
+    private static func normalizedEmail(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+    }
+
+    private static func normalizedPhone(_ value: String) -> String {
+        value.unicodeScalars.filter { CharacterSet.decimalDigits.contains($0) }.map(String.init).joined()
+    }
+
+    private static func normalizedText(_ value: String) -> String {
+        value.lowercased()
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: #"\s+"#, with: " ", options: .regularExpression)
+    }
+
+    private static func normalizedURL(_ value: String) -> String {
+        value.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
     }
 
     private static func apply(_ patch: JobRolePatch, to role: inout JobRole) {
@@ -350,6 +595,115 @@ public enum JobSearchOrganizer {
         let employerComparison = left.employer.localizedCaseInsensitiveCompare(right.employer)
         if employerComparison != .orderedSame { return employerComparison == .orderedAscending }
         return left.role.localizedCaseInsensitiveCompare(right.role) == .orderedAscending
+    }
+}
+
+public enum JobSearchContactOrganizer {
+    public static func contacts(
+        _ contacts: [JobSearchContact],
+        filter: JobSearchContactFilter = JobSearchContactFilter(),
+        search: String = "",
+        sort: JobSearchContactSort = .relationshipLevel,
+        now: Date = Date(),
+        calendar: Calendar = .current
+    ) -> [JobSearchContact] {
+        let query = search.trimmingCharacters(in: .whitespacesAndNewlines)
+        return contacts
+            .filter { contact in
+                matches(contact, filter: filter, now: now, calendar: calendar)
+                    && (query.isEmpty || searchText(for: contact).localizedCaseInsensitiveContains(query))
+            }
+            .sorted { compare($0, $1, by: sort) }
+    }
+
+    private static func matches(
+        _ contact: JobSearchContact,
+        filter: JobSearchContactFilter,
+        now: Date,
+        calendar: Calendar
+    ) -> Bool {
+        guard (filter.usefulness == nil || contact.usefulness == filter.usefulness),
+              (filter.responseStatus == nil || contact.responseStatus == filter.responseStatus),
+              (filter.relationshipLevel == nil || contact.relationshipLevel == filter.relationshipLevel) else {
+            return false
+        }
+
+        switch filter.followUp {
+        case .all:
+            return true
+        case .due:
+            guard let date = contact.nextFollowUpDate else { return false }
+            return calendar.startOfDay(for: date) <= calendar.startOfDay(for: now)
+        case .scheduled:
+            return contact.nextFollowUpDate != nil
+        case .none:
+            return contact.nextFollowUpDate == nil
+        }
+    }
+
+    private static func searchText(for contact: JobSearchContact) -> String {
+        let opportunityText = contact.opportunities.flatMap {
+            [$0.company, $0.roleTitle, $0.department, $0.location.displayName, $0.location.workArrangement, $0.track.title]
+        }
+        return ([
+            contact.name,
+            contact.company,
+            contact.titleOrDepartment,
+            contact.email,
+            contact.phone,
+            contact.confidence,
+            contact.usefulness.title,
+            contact.responseStatus.title,
+            contact.relationshipLevelTitle,
+            contact.notes,
+        ] + contact.sourceURLs + opportunityText).joined(separator: "\n")
+    }
+
+    private static func compare(
+        _ left: JobSearchContact,
+        _ right: JobSearchContact,
+        by sort: JobSearchContactSort
+    ) -> Bool {
+        switch sort {
+        case .relationshipLevel:
+            if left.relationshipLevel != right.relationshipLevel {
+                return left.relationshipLevel > right.relationshipLevel
+            }
+            if left.lastActivityAt != right.lastActivityAt { return left.lastActivityAt > right.lastActivityAt }
+        case .recentlyActive:
+            if left.lastActivityAt != right.lastActivityAt { return left.lastActivityAt > right.lastActivityAt }
+        case .name:
+            let comparison = left.name.localizedCaseInsensitiveCompare(right.name)
+            if comparison != .orderedSame { return comparison == .orderedAscending }
+        case .company:
+            let comparison = left.company.localizedCaseInsensitiveCompare(right.company)
+            if comparison != .orderedSame { return comparison == .orderedAscending }
+        case .followUp:
+            switch (left.nextFollowUpDate, right.nextFollowUpDate) {
+            case (let lhs?, let rhs?) where lhs != rhs: return lhs < rhs
+            case (_?, nil): return true
+            case (nil, _?): return false
+            default: break
+            }
+        }
+
+        let nameComparison = left.name.localizedCaseInsensitiveCompare(right.name)
+        if nameComparison != .orderedSame { return nameComparison == .orderedAscending }
+        return left.company.localizedCaseInsensitiveCompare(right.company) == .orderedAscending
+    }
+}
+
+public extension JobSearchContactGroup {
+    func title(for contact: JobSearchContact) -> String {
+        switch self {
+        case .none: "All Contacts"
+        case .company: contact.company.isEmpty ? "No company" : contact.company
+        case .department: contact.titleOrDepartment.isEmpty ? "No department" : contact.titleOrDepartment
+        case .responseStatus: contact.responseStatus.title
+        case .usefulness: contact.usefulness.title
+        case .relationshipLevel:
+            "Level \(contact.relationshipLevel) — \(contact.relationshipLevelTitle)"
+        }
     }
 }
 

@@ -11,6 +11,8 @@ public enum DomainError: Error, Equatable, LocalizedError {
     case invalidTeamName
     case jobRoleNotFound
     case invalidJobRole
+    case jobSearchContactNotFound
+    case invalidJobContact
 
     public var errorDescription: String? {
         switch self {
@@ -24,6 +26,8 @@ public enum DomainError: Error, Equatable, LocalizedError {
         case .invalidTeamName: "A team name is required."
         case .jobRoleNotFound: "Job role not found."
         case .invalidJobRole: "An employer and role title are required."
+        case .jobSearchContactNotFound: "Job-search contact not found."
+        case .invalidJobContact: "A contact needs a name or a publicly listed contact route."
         }
     }
 }

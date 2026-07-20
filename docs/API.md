@@ -32,9 +32,10 @@ is locked.
 | `GET /v1/tasks/{id}` | One task with notes, links, and structured mini-tasks. |
 | `GET /v1/references` | Completion-reference groups across both item kinds. |
 | `GET /v1/day-starter/context` | Both boards plus every To Do/In Progress task, mini-task workload, deadlines, links, notes, and references. |
-| `GET /v1/job-search/context` | Every job role plus its activity history; intended as the schedule's complete source of truth. |
+| `GET /v1/job-search/context` | Every job role, accumulated contact, and activity entry; intended as the schedule's complete source of truth. |
 | `GET /v1/job-search/roles` | Filtered and sorted roles; supports `scope`, `track`, `stage`, `search`, and `sort`. |
 | `GET /v1/job-search/roles/{id}` | One complete job role. |
+| `GET /v1/job-search/contacts` | Durable contacts; supports `usefulness`, `response_status`, `relationship_level`, `follow_up`, `search`, and `sort`. |
 
 ## Write routes
 
@@ -79,7 +80,10 @@ employer, title, location, and stage; canonical and official posting URLs;
 verification, posted, deadline, and last-checked data; compensation and position
 details; public contacts with evidence URLs; outreach guidance; application and
 mail-check history; a resume source path; linked Project Management task; and
-supporting evidence.
+supporting evidence. The same context also includes the accumulated Contacts
+Directory. Its public research facts are refreshed by job-role upserts, while
+user-owned usefulness, response, relationship level, follow-up dates, and notes
+are preserved.
 
 Upserts are deliberately asymmetric: fresh research can update posting,
 position, contact, outreach, resume, and evidence fields, while existing

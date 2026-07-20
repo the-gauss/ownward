@@ -19,6 +19,7 @@ final class AppModel {
     }
     var selectedTaskID: TaskID?
     var selectedJobRoleID: JobRoleID?
+    var selectedJobSearchContactID: JobSearchContactID?
     var viewMode: MainViewMode = .kanban
     var jobSidebarSelection: JobSearchSidebarSelection = .scope(.all)
     var jobSearchScope: JobSearchScope {
@@ -32,6 +33,10 @@ final class AppModel {
     var jobTrackFilter: JobTrackFilter = .all
     var searchText = ""
     var jobSearchText = ""
+    var jobContactSearchText = ""
+    var jobContactFilter = JobSearchContactFilter()
+    var jobContactSort: JobSearchContactSort = .relationshipLevel
+    var jobContactGroup: JobSearchContactGroup = .company
     var projectTaskFilter = TaskFilter()
     var apiError: String?
     var kanbanGrouping: TaskGrouping = .none
@@ -104,6 +109,10 @@ final class AppModel {
         selectedJobRoleID.flatMap(snapshot.jobSearch.role(id:))
     }
 
+    var selectedJobSearchContact: JobSearchContact? {
+        selectedJobSearchContactID.flatMap(snapshot.jobSearch.contact(id:))
+    }
+
     var isDailyLogSelected: Bool {
         if case .dailyLog = sidebarSelection { return true }
         return false
@@ -111,6 +120,11 @@ final class AppModel {
 
     var isWeeklyLogSelected: Bool {
         if case .weeklyLog = jobSidebarSelection { return true }
+        return false
+    }
+
+    var isContactsDirectorySelected: Bool {
+        if case .contactsDirectory = jobSidebarSelection { return true }
         return false
     }
 
@@ -146,6 +160,17 @@ final class AppModel {
 
     func jobRoleCount(for scope: JobSearchScope) -> Int {
         JobSearchOrganizer.count(snapshot.jobSearch.roles, scope: scope)
+    }
+
+    var jobSearchContactCount: Int { snapshot.jobSearch.contacts.count }
+
+    var visibleJobSearchContacts: [JobSearchContact] {
+        JobSearchContactOrganizer.contacts(
+            snapshot.jobSearch.contacts,
+            filter: jobContactFilter,
+            search: jobContactSearchText,
+            sort: jobContactSort
+        )
     }
 
     func activities(for roleID: JobRoleID) -> [JobActivity] {
@@ -395,6 +420,19 @@ final class AppModel {
         }
     }
 
+    func saveJobSearchContact(_ contact: JobSearchContact) {
+        Task {
+            do {
+                let updated = try await repository.mutate {
+                    try JobSearchEngine.saveContact(contact, in: &$0.jobSearch)
+                }
+                selectedJobSearchContactID = updated.jobSearch.contacts.first(where: { $0.id == contact.id })?.id
+            } catch {
+                apiError = error.localizedDescription
+            }
+        }
+    }
+
     func setJobStage(_ roleID: JobRoleID, to stage: JobStage) {
         let current = snapshot.jobSearch.role(id: roleID)
         let applicationPatch: JobApplicationPatch?
@@ -459,6 +497,10 @@ final class AppModel {
 
     func openContactSource(_ contact: JobContact) {
         openWebURL(contact.sourceURL, missingMessage: "This contact has no public source URL.")
+    }
+
+    func openJobSearchContactSource(_ sourceURL: String) {
+        openWebURL(sourceURL, missingMessage: "This contact has no public source URL.")
     }
 
     func openResume(for role: JobRole) {

@@ -39,6 +39,7 @@ class MCPServerTests(unittest.TestCase):
         self.assertIn("ownward_shift_task_schedule", tool_names)
         self.assertIn("ownward_resize_task_schedule", tool_names)
         self.assertIn("ownward_job_search_context", tool_names)
+        self.assertIn("ownward_list_job_contacts", tool_names)
         self.assertIn("ownward_list_job_roles", tool_names)
         self.assertIn("ownward_get_job_role", tool_names)
         self.assertIn("ownward_upsert_job_role", tool_names)
@@ -46,13 +47,16 @@ class MCPServerTests(unittest.TestCase):
         list_roles = next(tool for tool in responses[1]["result"]["tools"] if tool["name"] == "ownward_list_job_roles")
         self.assertIn("archive", list_roles["inputSchema"]["properties"]["scope"]["enum"])
 
-    def test_job_search_context_and_list_map_to_durable_api(self):
+    def test_job_search_context_and_lists_map_to_durable_api(self):
         client = FakeClient()
         server = MODULE.MCPServer(client)
 
         server.call_tool("ownward_job_search_context", {})
         server.call_tool("ownward_list_job_roles", {
             "track": "backup", "scope": "needsAction", "search": "municipal"
+        })
+        server.call_tool("ownward_list_job_contacts", {
+            "response_status": "responded", "relationship_level": 5, "sort": "relationship_level"
         })
 
         self.assertEqual(client.calls[0], ("GET", "/v1/job-search/context", None))
@@ -61,6 +65,10 @@ class MCPServerTests(unittest.TestCase):
         self.assertIn("track=backup", client.calls[1][1])
         self.assertIn("scope=needsAction", client.calls[1][1])
         self.assertIn("search=municipal", client.calls[1][1])
+        self.assertEqual(
+            client.calls[2],
+            ("GET", "/v1/job-search/contacts?response_status=responded&relationship_level=5&sort=relationship_level", None),
+        )
 
     def test_scheduled_log_maps_final_markdown_to_ownward(self):
         client = FakeClient()

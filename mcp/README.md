@@ -24,9 +24,10 @@ bidirectional completion references, completion actions, a dedicated
 `ownward_day_starter_context` tool, and `ownward_append_scheduled_log` for the
 final Markdown response shown in Daily Log or Weekly Log.
 
-Job Search adds five tools used by the Weekly Canada Roles Search:
+Job Search adds six tools used by the Weekly Canada Roles Search:
 
-- `ownward_job_search_context` returns every durable role and activity.
+- `ownward_job_search_context` returns every durable role, accumulated contact, and activity.
+- `ownward_list_job_contacts` reads contacts with usefulness, response, relationship, follow-up, search, and sort filters. It is read-only so user-owned relationship judgments stay human-managed.
 - `ownward_list_job_roles` supports scope, track, stage, search, and sort filters.
 - `ownward_get_job_role` returns one complete record.
 - `ownward_upsert_job_role` inserts or refreshes verified research idempotently.

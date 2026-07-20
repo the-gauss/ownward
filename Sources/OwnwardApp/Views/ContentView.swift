@@ -40,6 +40,8 @@ struct ContentView: View {
                                     model.toggleScheduledLogChecklist(entryID: entryID, checklistID: checklistID)
                                 }
                             )
+                        } else if model.isContactsDirectorySelected {
+                            ContactsDirectoryView(model: model)
                         } else {
                             JobSearchView(model: model)
                         }
@@ -52,7 +54,10 @@ struct ContentView: View {
                             .id(task.id)
                             .environment(\.ownwardTheme, theme.scalingFonts(by: model.zoomScale))
                             .inspectorColumnWidth(min: 280, ideal: 320, max: 430)
-                    } else if model.workspaceMode == .jobSearch, !model.isWeeklyLogSelected, let role = model.selectedJobRole {
+                    } else if model.workspaceMode == .jobSearch,
+                              !model.isWeeklyLogSelected,
+                              !model.isContactsDirectorySelected,
+                              let role = model.selectedJobRole {
                         JobRoleInspectorView(model: model, role: role)
                             .id(role.id)
                             .inspectorColumnWidth(min: 300, ideal: 340, max: 440)
@@ -74,6 +79,7 @@ struct ContentView: View {
             if case .saved = selection { model.viewMode = .table }
         }
         .onChange(of: model.jobSidebarSelection) { _, _ in
+            model.selectedJobSearchContactID = nil
             if let selected = model.selectedJobRoleID,
                !model.visibleJobRoles.contains(where: { $0.id == selected }) {
                 model.selectedJobRoleID = nil
@@ -91,7 +97,8 @@ struct ContentView: View {
             get: {
                 switch model.workspaceMode {
                 case .projectManagement: !model.isDailyLogSelected && model.selectedTaskID != nil
-                case .jobSearch: !model.isWeeklyLogSelected && model.selectedJobRoleID != nil
+                case .jobSearch:
+                    !model.isWeeklyLogSelected && !model.isContactsDirectorySelected && model.selectedJobRoleID != nil
                 }
             },
             set: { presented in

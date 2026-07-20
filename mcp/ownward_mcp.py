@@ -376,8 +376,24 @@ TOOLS: list[dict[str, Any]] = [
     },
     {
         "name": "ownward_job_search_context",
-        "description": "Return every durable job-role record and activity entry. Use this first instead of tracker files, Notion, or task memory.",
+        "description": "Return every durable job-role record, accumulated contacts directory, and activity entry. Use this first instead of tracker files, Notion, or task memory.",
         "inputSchema": {"type": "object", "properties": {}, "additionalProperties": False},
+    },
+    {
+        "name": "ownward_list_job_contacts",
+        "description": "Read the accumulated Job Search contacts directory. Relationship ratings and response history are user-owned; use this tool for context, not to infer or contact anyone.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "usefulness": {"type": "string", "enum": ["unknown", "useful", "not_useful"]},
+                "response_status": {"type": "string", "enum": ["not_contacted", "no_response", "responded"]},
+                "relationship_level": {"type": "integer", "minimum": 0, "maximum": 5},
+                "follow_up": {"type": "string", "enum": ["all", "due", "scheduled", "none"]},
+                "search": {"type": "string"},
+                "sort": {"type": "string", "enum": ["relationship_level", "recently_active", "name", "company", "follow_up"]},
+            },
+            "additionalProperties": False,
+        },
     },
     {
         "name": "ownward_list_job_roles",
@@ -585,6 +601,18 @@ class MCPServer:
             })
         elif name == "ownward_job_search_context":
             data = self.client.request("GET", "/v1/job-search/context")
+        elif name == "ownward_list_job_contacts":
+            query = urllib.parse.urlencode({
+                key: value for key, value in {
+                    "usefulness": arguments.get("usefulness"),
+                    "response_status": arguments.get("response_status"),
+                    "relationship_level": arguments.get("relationship_level"),
+                    "follow_up": arguments.get("follow_up"),
+                    "search": arguments.get("search"),
+                    "sort": arguments.get("sort"),
+                }.items() if value is not None
+            })
+            data = self.client.request("GET", "/v1/job-search/contacts" + (f"?{query}" if query else ""))
         elif name == "ownward_list_job_roles":
             query = urllib.parse.urlencode({
                 key: value for key, value in {

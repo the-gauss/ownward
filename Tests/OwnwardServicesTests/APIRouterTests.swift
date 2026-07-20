@@ -51,8 +51,15 @@ struct APIRouterTests {
             application: JobApplication(applied: true, notes: "Preserve this")
         )
         let activity = JobActivity(roleID: role.id, kind: .created, detail: "Migrated")
+        let contact = JobSearchContact(
+            name: "Avery Chen",
+            company: "Wesway",
+            email: "avery@example.ca",
+            usefulness: .useful,
+            relationshipLevel: 4
+        )
         let repository = try WorkspaceRepository(inMemory: OwnwardSnapshot(
-            jobSearch: JobSearchWorkspace(roles: [role], activities: [activity])
+            jobSearch: JobSearchWorkspace(roles: [role], activities: [activity], contacts: [contact])
         ))
         let router = APIRouter(repository: repository, token: "secret")
 
@@ -68,6 +75,41 @@ struct APIRouterTests {
         #expect(context.roles.first?.application.notes == "Preserve this")
         #expect(context.activities.map(\.id) == [activity.id])
         #expect(context.activities.first?.detail == "Migrated")
+        #expect(context.contacts.map(\.id) == [contact.id])
+    }
+
+    @Test("contact directory API keeps relationship fields local and queryable")
+    func listsJobSearchContacts() async throws {
+        let useful = JobSearchContact(
+            name: "Avery Chen",
+            company: "Example County",
+            email: "avery@example.ca",
+            usefulness: .useful,
+            responseStatus: .responded,
+            relationshipLevel: 5
+        )
+        let waiting = JobSearchContact(
+            name: "Morgan Patel",
+            company: "Northwind Labs",
+            email: "morgan@example.ca",
+            responseStatus: .noResponse,
+            relationshipLevel: 0
+        )
+        let repository = try WorkspaceRepository(inMemory: OwnwardSnapshot(
+            jobSearch: JobSearchWorkspace(contacts: [waiting, useful])
+        ))
+        let router = APIRouter(repository: repository, token: "secret")
+
+        let response = await router.handle(APIRequest(
+            method: "GET",
+            path: "/v1/job-search/contacts",
+            query: ["response_status": "responded", "sort": "relationship_level"],
+            headers: ["authorization": "Bearer secret"]
+        ))
+        let contacts = try JSONDecoder.api.decode([JobSearchContact].self, from: response.body)
+
+        #expect(response.status == 200)
+        #expect(contacts.map(\.id) == [useful.id])
     }
 
     @Test("job-role list supports track, stage, scope, and human search filters")

@@ -1,7 +1,7 @@
 import Foundation
 
 public enum SnapshotMigrator {
-    public static let currentSchemaVersion = 6
+    public static let currentSchemaVersion = 8
 
     public static func upgrade(_ snapshot: OwnwardSnapshot, using seed: OwnwardSnapshot = .empty) -> OwnwardSnapshot {
         var upgraded = snapshot
@@ -48,6 +48,14 @@ public enum SnapshotMigrator {
                     upgraded.jobSearch.activities[activityIndex].detail = "Verified role added."
                 }
             }
+        }
+
+        if upgraded.schemaVersion < 7 {
+            JobSearchEngine.reconcileContactDirectory(in: &upgraded.jobSearch)
+        }
+
+        if upgraded.schemaVersion < 8 {
+            JobSearchEngine.removePlaceholderDirectoryContacts(in: &upgraded.jobSearch)
         }
 
         upgraded.schemaVersion = currentSchemaVersion

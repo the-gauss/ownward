@@ -139,6 +139,17 @@ struct SidebarView: View {
                     .tag(JobSearchSidebarSelection.scope(scope))
                 }
             }
+            Section("Contacts") {
+                HStack(spacing: 8) {
+                    Label("Contacts Directory", systemImage: "person.2")
+                    Spacer(minLength: 8)
+                    Text("\(model.jobSearchContactCount)")
+                        .font(theme.metadataFont(10))
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+                .tag(JobSearchSidebarSelection.contactsDirectory)
+            }
             Section("Weekly Log") {
                 Label("Weekly Log", systemImage: "text.book.closed")
                     .tag(JobSearchSidebarSelection.weeklyLog)

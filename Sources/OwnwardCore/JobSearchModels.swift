@@ -12,6 +12,12 @@ public struct JobActivityID: OwnwardIdentifier, Identifiable {
     public init(rawValue: UUID) { self.rawValue = rawValue }
 }
 
+public struct JobSearchContactID: OwnwardIdentifier, Identifiable {
+    public let rawValue: UUID
+    public var id: UUID { rawValue }
+    public init(rawValue: UUID) { self.rawValue = rawValue }
+}
+
 public enum JobSearchTrack: String, Codable, CaseIterable, Identifiable, Sendable {
     case backup
     case canon
@@ -92,6 +98,116 @@ public enum JobSearchSort: String, CaseIterable, Identifiable, Sendable {
         case .employer: "Employer"
         case .priority: "Priority"
         }
+    }
+}
+
+public enum JobContactUsefulness: String, Codable, CaseIterable, Identifiable, Sendable {
+    case unknown
+    case useful
+    case notUseful = "not_useful"
+
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .unknown: "Unassessed"
+        case .useful: "Useful"
+        case .notUseful: "Not useful"
+        }
+    }
+}
+
+public enum JobContactResponseStatus: String, Codable, CaseIterable, Identifiable, Sendable {
+    case notContacted = "not_contacted"
+    case noResponse = "no_response"
+    case responded
+
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .notContacted: "Not contacted"
+        case .noResponse: "No response"
+        case .responded: "Responded"
+        }
+    }
+}
+
+public enum JobSearchContactSort: String, CaseIterable, Identifiable, Sendable {
+    case relationshipLevel = "relationship_level"
+    case recentlyActive = "recently_active"
+    case name
+    case company
+    case followUp = "follow_up"
+
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .relationshipLevel: "Relationship level"
+        case .recentlyActive: "Recent activity"
+        case .name: "Name"
+        case .company: "Company"
+        case .followUp: "Follow-up date"
+        }
+    }
+}
+
+public enum JobSearchContactGroup: String, CaseIterable, Identifiable, Sendable {
+    case none
+    case company
+    case department
+    case responseStatus = "response_status"
+    case usefulness
+    case relationshipLevel = "relationship_level"
+
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .none: "No grouping"
+        case .company: "Company"
+        case .department: "Department"
+        case .responseStatus: "Response"
+        case .usefulness: "Usefulness"
+        case .relationshipLevel: "Relationship level"
+        }
+    }
+}
+
+public enum JobSearchContactFollowUpFilter: String, CaseIterable, Identifiable, Sendable {
+    case all
+    case due
+    case scheduled
+    case none
+
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .all: "All follow-ups"
+        case .due: "Due now"
+        case .scheduled: "Scheduled"
+        case .none: "No follow-up"
+        }
+    }
+}
+
+public struct JobSearchContactFilter: Equatable, Sendable {
+    public var usefulness: JobContactUsefulness?
+    public var responseStatus: JobContactResponseStatus?
+    public var relationshipLevel: Int?
+    public var followUp: JobSearchContactFollowUpFilter
+
+    public init(
+        usefulness: JobContactUsefulness? = nil,
+        responseStatus: JobContactResponseStatus? = nil,
+        relationshipLevel: Int? = nil,
+        followUp: JobSearchContactFollowUpFilter = .all
+    ) {
+        self.usefulness = usefulness
+        self.responseStatus = responseStatus
+        self.relationshipLevel = relationshipLevel.map { min(5, max(0, $0)) }
+        self.followUp = followUp
+    }
+
+    public var isActive: Bool {
+        usefulness != nil || responseStatus != nil || relationshipLevel != nil || followUp != .all
     }
 }
 
@@ -211,6 +327,142 @@ public struct JobContact: Codable, Equatable, Identifiable, Sendable {
         !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             || !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
             || !sourceURL.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    }
+}
+
+public struct JobContactOpportunity: Codable, Equatable, Identifiable, Sendable {
+    public var roleID: JobRoleID
+    public var company: String
+    public var roleTitle: String
+    public var department: String
+    public var location: JobLocation
+    public var track: JobSearchTrack
+    public var firstSeenAt: Date
+    public var lastSeenAt: Date
+
+    public var id: JobRoleID { roleID }
+
+    public init(
+        roleID: JobRoleID,
+        company: String,
+        roleTitle: String,
+        department: String = "",
+        location: JobLocation = JobLocation(),
+        track: JobSearchTrack,
+        firstSeenAt: Date = Date(),
+        lastSeenAt: Date = Date()
+    ) {
+        self.roleID = roleID
+        self.company = company
+        self.roleTitle = roleTitle
+        self.department = department
+        self.location = location
+        self.track = track
+        self.firstSeenAt = firstSeenAt
+        self.lastSeenAt = lastSeenAt
+    }
+}
+
+/// A person or public recruiting route accumulated across job-search runs.
+/// Research evidence is synchronized from role contacts while interaction data
+/// belongs to the user and is never replaced by an automated refresh.
+public struct JobSearchContact: Codable, Equatable, Identifiable, Sendable {
+    public var id: JobSearchContactID
+    public var name: String
+    public var company: String
+    public var titleOrDepartment: String
+    public var email: String
+    public var phone: String
+    public var sourceURLs: [String]
+    public var confidence: String
+    public var isPrimary: Bool
+    public var usefulness: JobContactUsefulness
+    public var responseStatus: JobContactResponseStatus
+    public var relationshipLevel: Int
+    public var firstSeenAt: Date
+    public var lastSeenAt: Date
+    public var firstContactedAt: Date?
+    public var lastContactedAt: Date?
+    public var lastRespondedAt: Date?
+    public var nextFollowUpDate: Date?
+    public var notes: String
+    public var opportunities: [JobContactOpportunity]
+    public var createdAt: Date
+    public var updatedAt: Date
+
+    public init(
+        id: JobSearchContactID = JobSearchContactID(),
+        name: String = "",
+        company: String = "",
+        titleOrDepartment: String = "",
+        email: String = "",
+        phone: String = "",
+        sourceURLs: [String] = [],
+        confidence: String = "",
+        isPrimary: Bool = false,
+        usefulness: JobContactUsefulness = .unknown,
+        responseStatus: JobContactResponseStatus = .notContacted,
+        relationshipLevel: Int = 1,
+        firstSeenAt: Date = Date(),
+        lastSeenAt: Date = Date(),
+        firstContactedAt: Date? = nil,
+        lastContactedAt: Date? = nil,
+        lastRespondedAt: Date? = nil,
+        nextFollowUpDate: Date? = nil,
+        notes: String = "",
+        opportunities: [JobContactOpportunity] = [],
+        createdAt: Date = Date(),
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.name = name
+        self.company = company
+        self.titleOrDepartment = titleOrDepartment
+        self.email = email
+        self.phone = phone
+        self.sourceURLs = sourceURLs
+        self.confidence = confidence
+        self.isPrimary = isPrimary
+        self.usefulness = usefulness
+        self.responseStatus = responseStatus
+        self.relationshipLevel = min(5, max(0, relationshipLevel))
+        self.firstSeenAt = firstSeenAt
+        self.lastSeenAt = lastSeenAt
+        self.firstContactedAt = firstContactedAt
+        self.lastContactedAt = lastContactedAt
+        self.lastRespondedAt = lastRespondedAt
+        self.nextFollowUpDate = nextFollowUpDate
+        self.notes = notes
+        self.opportunities = opportunities
+        self.createdAt = createdAt
+        self.updatedAt = updatedAt
+    }
+
+    public var hasRoute: Bool {
+        !email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !phone.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            || !sourceURLs.isEmpty
+    }
+
+    public var lastActivityAt: Date {
+        [lastRespondedAt, lastContactedAt, lastSeenAt, updatedAt]
+            .compactMap { $0 }
+            .max() ?? updatedAt
+    }
+
+    public var relationshipLevelTitle: String {
+        Self.relationshipLevelTitle(relationshipLevel)
+    }
+
+    public static func relationshipLevelTitle(_ level: Int) -> String {
+        switch min(5, max(0, level)) {
+        case 0: "Ghosted"
+        case 1: "Identified"
+        case 2: "Contacted"
+        case 3: "Responded"
+        case 4: "Active exchange"
+        default: "Established relationship"
+        }
     }
 }
 
@@ -415,15 +667,38 @@ public struct JobRoleIdentity: Equatable, Hashable, Sendable {
 public struct JobSearchWorkspace: Codable, Equatable, Sendable {
     public var roles: [JobRole]
     public var activities: [JobActivity]
+    public var contacts: [JobSearchContact]
 
-    public init(roles: [JobRole] = [], activities: [JobActivity] = []) {
+    public init(
+        roles: [JobRole] = [],
+        activities: [JobActivity] = [],
+        contacts: [JobSearchContact] = []
+    ) {
         self.roles = roles
         self.activities = activities
+        self.contacts = contacts
     }
 
     public static let empty = JobSearchWorkspace()
 
     public func role(id: JobRoleID) -> JobRole? { roles.first { $0.id == id } }
+    public func contact(id: JobSearchContactID) -> JobSearchContact? { contacts.first { $0.id == id } }
+
+    private enum CodingKeys: String, CodingKey { case roles, activities, contacts }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        roles = try container.decodeIfPresent([JobRole].self, forKey: .roles) ?? []
+        activities = try container.decodeIfPresent([JobActivity].self, forKey: .activities) ?? []
+        contacts = try container.decodeIfPresent([JobSearchContact].self, forKey: .contacts) ?? []
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(roles, forKey: .roles)
+        try container.encode(activities, forKey: .activities)
+        try container.encode(contacts, forKey: .contacts)
+    }
 }
 
 public enum PatchValue<Value: Codable & Equatable & Sendable>: Codable, Equatable, Sendable {

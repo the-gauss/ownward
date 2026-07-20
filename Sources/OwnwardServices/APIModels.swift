@@ -64,11 +64,18 @@ public struct JobSearchContext: Codable, Equatable, Sendable {
     public var generatedAt: Date
     public var roles: [JobRole]
     public var activities: [JobActivity]
+    public var contacts: [JobSearchContact]
 
-    public init(generatedAt: Date = Date(), roles: [JobRole], activities: [JobActivity]) {
+    public init(
+        generatedAt: Date = Date(),
+        roles: [JobRole],
+        activities: [JobActivity],
+        contacts: [JobSearchContact] = []
+    ) {
         self.generatedAt = generatedAt
         self.roles = roles
         self.activities = activities
+        self.contacts = contacts
     }
 }
 

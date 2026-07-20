@@ -44,9 +44,15 @@ public struct APIRouter: Sendable {
                 return .json(DayStarterContext(boards: snapshot.boards, tasks: tasks, referenceGroups: snapshot.referenceGroups))
             case ("GET", "/v1/job-search/context"):
                 let workspace = await repository.snapshot().jobSearch
-                return .json(JobSearchContext(roles: workspace.roles, activities: workspace.activities))
+                return .json(JobSearchContext(
+                    roles: workspace.roles,
+                    activities: workspace.activities,
+                    contacts: workspace.contacts
+                ))
             case ("GET", "/v1/job-search/roles"):
                 return .json(filterJobRoles(in: await repository.snapshot(), query: request.query))
+            case ("GET", "/v1/job-search/contacts"):
+                return .json(filterJobSearchContacts(in: await repository.snapshot(), query: request.query))
             case ("POST", "/v1/job-search/roles/upsert"):
                 return try await upsertJobRole(from: request.body)
             case ("POST", "/v1/references"):
@@ -59,7 +65,8 @@ public struct APIRouter: Sendable {
         } catch let error as DecodingError {
             return .error(status: 400, message: "Invalid JSON: \(error.localizedDescription)")
         } catch let error as DomainError {
-            let status = error == .invalidBoardName || error == .boardAlreadyExists || error == .invalidJobRole ? 400 : 404
+            let status = error == .invalidBoardName || error == .boardAlreadyExists
+                || error == .invalidJobRole || error == .invalidJobContact ? 400 : 404
             return .error(status: status, message: error.localizedDescription)
         } catch {
             return .error(status: 500, message: error.localizedDescription)
@@ -302,6 +309,22 @@ public struct APIRouter: Sendable {
         )
         guard let stage = query["stage"].flatMap(JobStage.init(rawValue:)) else { return organized }
         return organized.filter { $0.stage == stage }
+    }
+
+    private func filterJobSearchContacts(in snapshot: OwnwardSnapshot, query: [String: String]) -> [JobSearchContact] {
+        let filter = JobSearchContactFilter(
+            usefulness: query["usefulness"].flatMap(JobContactUsefulness.init(rawValue:)),
+            responseStatus: query["response_status"].flatMap(JobContactResponseStatus.init(rawValue:)),
+            relationshipLevel: query["relationship_level"].flatMap(Int.init),
+            followUp: query["follow_up"].flatMap(JobSearchContactFollowUpFilter.init(rawValue:)) ?? .all
+        )
+        let sort = query["sort"].flatMap(JobSearchContactSort.init(rawValue:)) ?? .relationshipLevel
+        return JobSearchContactOrganizer.contacts(
+            snapshot.jobSearch.contacts,
+            filter: filter,
+            search: query["search"] ?? "",
+            sort: sort
+        )
     }
 
     private func taskPriority(_ lhs: TaskItem, _ rhs: TaskItem) -> Bool {

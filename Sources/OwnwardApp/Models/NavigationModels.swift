@@ -81,5 +81,14 @@ enum SidebarSelection: Hashable {
 
 enum JobSearchSidebarSelection: Hashable {
     case scope(JobSearchScope)
+    case contactsDirectory
     case weeklyLog
+
+    var title: String {
+        switch self {
+        case .scope(let scope): scope.title
+        case .contactsDirectory: "Contacts Directory"
+        case .weeklyLog: "Weekly Log"
+        }
+    }
 }
