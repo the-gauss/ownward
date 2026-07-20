@@ -162,7 +162,14 @@ final class AppModel {
         JobSearchOrganizer.count(snapshot.jobSearch.roles, scope: scope)
     }
 
-    var jobSearchContactCount: Int { snapshot.jobSearch.contacts.count }
+    var jobSearchContactCount: Int { jobSearchContactCount(for: .active) }
+
+    func jobSearchContactCount(for scope: JobSearchContactScope) -> Int {
+        JobSearchContactOrganizer.contacts(
+            snapshot.jobSearch.contacts,
+            filter: JobSearchContactFilter(scope: scope)
+        ).count
+    }
 
     var visibleJobSearchContacts: [JobSearchContact] {
         JobSearchContactOrganizer.contacts(
@@ -427,6 +434,19 @@ final class AppModel {
                     try JobSearchEngine.saveContact(contact, in: &$0.jobSearch)
                 }
                 selectedJobSearchContactID = updated.jobSearch.contacts.first(where: { $0.id == contact.id })?.id
+            } catch {
+                apiError = error.localizedDescription
+            }
+        }
+    }
+
+    func setJobSearchContactArchived(_ contactID: JobSearchContactID, archived: Bool) {
+        Task {
+            do {
+                _ = try await repository.mutate {
+                    try JobSearchEngine.setContactArchived(contactID, archived: archived, in: &$0.jobSearch)
+                }
+                if archived { selectedJobSearchContactID = nil }
             } catch {
                 apiError = error.localizedDescription
             }

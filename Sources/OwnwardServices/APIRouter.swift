@@ -316,7 +316,8 @@ public struct APIRouter: Sendable {
             usefulness: query["usefulness"].flatMap(JobContactUsefulness.init(rawValue:)),
             responseStatus: query["response_status"].flatMap(JobContactResponseStatus.init(rawValue:)),
             relationshipLevel: query["relationship_level"].flatMap(Int.init),
-            followUp: query["follow_up"].flatMap(JobSearchContactFollowUpFilter.init(rawValue:)) ?? .all
+            followUp: query["follow_up"].flatMap(JobSearchContactFollowUpFilter.init(rawValue:)) ?? .all,
+            scope: query["scope"].flatMap(JobSearchContactScope.init(rawValue:)) ?? .active
         )
         let sort = query["sort"].flatMap(JobSearchContactSort.init(rawValue:)) ?? .relationshipLevel
         return JobSearchContactOrganizer.contacts(

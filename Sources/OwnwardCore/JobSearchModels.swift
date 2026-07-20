@@ -188,26 +188,44 @@ public enum JobSearchContactFollowUpFilter: String, CaseIterable, Identifiable, 
     }
 }
 
+public enum JobSearchContactScope: String, CaseIterable, Identifiable, Sendable {
+    case active
+    case archived
+    case all
+
+    public var id: String { rawValue }
+    public var title: String {
+        switch self {
+        case .active: "Active contacts"
+        case .archived: "Archived contacts"
+        case .all: "All contacts"
+        }
+    }
+}
+
 public struct JobSearchContactFilter: Equatable, Sendable {
     public var usefulness: JobContactUsefulness?
     public var responseStatus: JobContactResponseStatus?
     public var relationshipLevel: Int?
     public var followUp: JobSearchContactFollowUpFilter
+    public var scope: JobSearchContactScope
 
     public init(
         usefulness: JobContactUsefulness? = nil,
         responseStatus: JobContactResponseStatus? = nil,
         relationshipLevel: Int? = nil,
-        followUp: JobSearchContactFollowUpFilter = .all
+        followUp: JobSearchContactFollowUpFilter = .all,
+        scope: JobSearchContactScope = .active
     ) {
         self.usefulness = usefulness
         self.responseStatus = responseStatus
         self.relationshipLevel = relationshipLevel.map { min(5, max(0, $0)) }
         self.followUp = followUp
+        self.scope = scope
     }
 
     public var isActive: Bool {
-        usefulness != nil || responseStatus != nil || relationshipLevel != nil || followUp != .all
+        usefulness != nil || responseStatus != nil || relationshipLevel != nil || followUp != .all || scope != .active
     }
 }
 
@@ -387,6 +405,9 @@ public struct JobSearchContact: Codable, Equatable, Identifiable, Sendable {
     public var nextFollowUpDate: Date?
     public var notes: String
     public var opportunities: [JobContactOpportunity]
+    /// `nil` keeps the contact in the active directory. The timestamp makes
+    /// archive status reversible while retaining user-owned relationship data.
+    public var archivedAt: Date?
     public var createdAt: Date
     public var updatedAt: Date
 
@@ -411,6 +432,7 @@ public struct JobSearchContact: Codable, Equatable, Identifiable, Sendable {
         nextFollowUpDate: Date? = nil,
         notes: String = "",
         opportunities: [JobContactOpportunity] = [],
+        archivedAt: Date? = nil,
         createdAt: Date = Date(),
         updatedAt: Date = Date()
     ) {
@@ -434,6 +456,7 @@ public struct JobSearchContact: Codable, Equatable, Identifiable, Sendable {
         self.nextFollowUpDate = nextFollowUpDate
         self.notes = notes
         self.opportunities = opportunities
+        self.archivedAt = archivedAt
         self.createdAt = createdAt
         self.updatedAt = updatedAt
     }
@@ -449,6 +472,8 @@ public struct JobSearchContact: Codable, Equatable, Identifiable, Sendable {
             .compactMap { $0 }
             .max() ?? updatedAt
     }
+
+    public var isArchived: Bool { archivedAt != nil }
 
     public var relationshipLevelTitle: String {
         Self.relationshipLevelTitle(relationshipLevel)

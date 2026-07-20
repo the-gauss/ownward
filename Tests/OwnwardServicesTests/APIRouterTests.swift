@@ -112,6 +112,37 @@ struct APIRouterTests {
         #expect(contacts.map(\.id) == [useful.id])
     }
 
+    @Test("contact directory API scopes active and archived contacts")
+    func listsArchivedJobSearchContacts() async throws {
+        let active = JobSearchContact(name: "Avery Chen", email: "avery@example.ca")
+        let archived = JobSearchContact(
+            name: "Morgan Patel",
+            email: "morgan@example.ca",
+            archivedAt: Date(timeIntervalSince1970: 1_800_000_000)
+        )
+        let repository = try WorkspaceRepository(inMemory: OwnwardSnapshot(
+            jobSearch: JobSearchWorkspace(contacts: [archived, active])
+        ))
+        let router = APIRouter(repository: repository, token: "secret")
+
+        let activeResponse = await router.handle(APIRequest(
+            method: "GET",
+            path: "/v1/job-search/contacts",
+            headers: ["authorization": "Bearer secret"]
+        ))
+        let archivedResponse = await router.handle(APIRequest(
+            method: "GET",
+            path: "/v1/job-search/contacts",
+            query: ["scope": "archived"],
+            headers: ["authorization": "Bearer secret"]
+        ))
+
+        let activeContacts = try JSONDecoder.api.decode([JobSearchContact].self, from: activeResponse.body)
+        let archivedContacts = try JSONDecoder.api.decode([JobSearchContact].self, from: archivedResponse.body)
+        #expect(activeContacts.map(\.id) == [active.id])
+        #expect(archivedContacts.map(\.id) == [archived.id])
+    }
+
     @Test("job-role list supports track, stage, scope, and human search filters")
     func listsFilteredJobRoles() async throws {
         var ready = JobRole(

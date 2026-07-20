@@ -41,6 +41,44 @@ enum JobSearchColumn: Equatable {
     case nextDate
 }
 
+enum JobSearchContactRoutes {
+    static func mailtoURL(for email: String) -> URL? {
+        let value = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard value.contains("@"), !value.contains(where: { $0.isWhitespace }) else { return nil }
+        var components = URLComponents()
+        components.scheme = "mailto"
+        components.path = value
+        return components.url
+    }
+
+    static func phoneURL(for phone: String) -> URL? {
+        let trimmed = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        let hasLeadingPlus = trimmed.hasPrefix("+")
+        let digits = trimmed.unicodeScalars
+            .filter { CharacterSet.decimalDigits.contains($0) }
+            .map(String.init)
+            .joined()
+        guard !digits.isEmpty else { return nil }
+        return URL(string: "tel:" + (hasLeadingPlus ? "+" : "") + digits)
+    }
+
+    static func publicSourceURL(for value: String) -> URL? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: trimmed),
+              let scheme = url.scheme?.lowercased(),
+              ["http", "https"].contains(scheme),
+              url.host != nil else {
+            return nil
+        }
+        return url
+    }
+
+    static func publicSourceTitle(for value: String) -> String {
+        guard let host = publicSourceURL(for: value)?.host, !host.isEmpty else { return "Public source" }
+        return host.hasPrefix("www.") ? String(host.dropFirst(4)) : host
+    }
+}
+
 enum JobResumeSourceLocator {
     static func resolve(
         recordedPath: String,

@@ -317,6 +317,47 @@ struct JobSearchTests {
         #expect(JobSearchContactGroup.relationshipLevel.title(for: waiting) == "Level 0 — Ghosted")
     }
 
+    @Test("contact archive state is reversible, filterable, and survives a weekly refresh")
+    func contactDirectoryArchiveState() throws {
+        let firstSeen = Date(timeIntervalSince1970: 1_800_000_000)
+        let archivedAt = firstSeen.addingTimeInterval(86_400)
+        let refresh = archivedAt.addingTimeInterval(7 * 86_400)
+        var role = sampleRole(createdAt: firstSeen)
+        role.contacts = [JobContact(name: "Avery Chen", email: "avery@example.ca")]
+        var workspace = JobSearchWorkspace()
+
+        _ = try JobSearchEngine.upsert(role, in: &workspace, at: firstSeen)
+        let contactID = try #require(workspace.contacts.first?.id)
+        try JobSearchEngine.setContactArchived(contactID, archived: true, in: &workspace, at: archivedAt)
+
+        #expect(workspace.contacts.first?.archivedAt == archivedAt)
+        #expect(JobSearchContactOrganizer.contacts(workspace.contacts).isEmpty)
+        #expect(JobSearchContactOrganizer.contacts(
+            workspace.contacts,
+            filter: JobSearchContactFilter(scope: .archived)
+        ).map(\.id) == [contactID])
+        #expect(JobSearchContactOrganizer.contacts(
+            workspace.contacts,
+            filter: JobSearchContactFilter(scope: .all)
+        ).map(\.id) == [contactID])
+
+        role.contacts = [JobContact(
+            name: "Avery Chen",
+            titleOrDepartment: "Talent Acquisition",
+            email: "avery@example.ca",
+            sourceURL: "https://example.ca/careers"
+        )]
+        _ = try JobSearchEngine.upsert(role, in: &workspace, at: refresh)
+
+        let refreshed = try #require(workspace.contacts.first)
+        #expect(refreshed.archivedAt == archivedAt)
+        #expect(refreshed.titleOrDepartment == "Talent Acquisition")
+
+        try JobSearchEngine.setContactArchived(contactID, archived: false, in: &workspace, at: refresh)
+        #expect(workspace.contacts.first?.archivedAt == nil)
+        #expect(JobSearchContactOrganizer.contacts(workspace.contacts).map(\.id) == [contactID])
+    }
+
     private func sampleRole(createdAt: Date) -> JobRole {
         JobRole(
             track: .backup,

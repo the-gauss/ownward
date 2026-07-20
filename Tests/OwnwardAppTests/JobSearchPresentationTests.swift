@@ -129,6 +129,15 @@ struct JobSearchPresentationTests {
         #expect(JobSearchSidebarSelection.contactsDirectory.title == "Contacts Directory")
     }
 
+    @Test("contact directory routes produce usable mail phone and public-source destinations")
+    func contactDirectoryRoutes() {
+        #expect(JobSearchContactRoutes.mailtoURL(for: "  avery+jobs@example.ca ")?.absoluteString == "mailto:avery+jobs@example.ca")
+        #expect(JobSearchContactRoutes.phoneURL(for: "+1 (807) 555-0100")?.absoluteString == "tel:+18075550100")
+        #expect(JobSearchContactRoutes.publicSourceURL(for: "https://example.ca/careers")?.absoluteString == "https://example.ca/careers")
+        #expect(JobSearchContactRoutes.publicSourceURL(for: "mailto:jobs@example.ca") == nil)
+        #expect(JobSearchContactRoutes.publicSourceURL(for: "not a URL") == nil)
+    }
+
     @Test("a linked application task opens in its Project Management destination")
     @MainActor
     func linkedApplicationTaskNavigation() throws {
