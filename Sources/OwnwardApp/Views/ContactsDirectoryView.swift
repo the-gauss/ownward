@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 import OwnwardCore
 
@@ -69,11 +70,20 @@ struct ContactsDirectoryView: View {
                                 .contentShape(Rectangle())
                                 .contextMenu {
                                     Button("Edit Contact") { contactBeingEdited = contact }
-                                    if let sourceURL = contact.sourceURLs.first {
-                                        Button("Open Public Source") { model.openJobSearchContactSource(sourceURL) }
+                                    if !contact.email.isEmpty {
+                                        Button("Copy Email Address") { ContactClipboard.copy(contact.email) }
+                                    }
+                                    if !contact.phone.isEmpty {
+                                        Button("Copy Phone Number") { ContactClipboard.copy(contact.phone) }
+                                    }
+                                    ForEach(contact.sourceURLs, id: \.self) { sourceURL in
+                                        Button("Copy Public Source") { ContactClipboard.copy(sourceURL) }
+                                    }
+                                    Divider()
+                                    Button(contact.isArchived ? "Restore Contact" : "Archive Contact") {
+                                        model.setJobSearchContactArchived(contact.id, archived: !contact.isArchived)
                                     }
                                 }
-                                .onTapGesture(count: 2) { contactBeingEdited = contact }
                         }
                     }
                 }
@@ -139,11 +149,32 @@ struct ContactsDirectoryView: View {
             .labelStyle(.titleAndIcon)
             .disabled(model.selectedJobSearchContactID == nil)
             .help("Select a contact to edit its relationship record")
+
+            Button {
+                guard let contact = model.selectedJobSearchContact else { return }
+                model.setJobSearchContactArchived(contact.id, archived: !contact.isArchived)
+            } label: {
+                Label(
+                    model.selectedJobSearchContact?.isArchived == true ? "Restore Contact" : "Archive Contact",
+                    systemImage: model.selectedJobSearchContact?.isArchived == true ? "tray.and.arrow.up" : "archivebox"
+                )
+            }
+            .labelStyle(.titleAndIcon)
+            .disabled(model.selectedJobSearchContactID == nil)
+            .help("Archive the selected contact without deleting its relationship record")
         }
     }
 
     private var contactFilterMenu: some View {
         Menu {
+            Section("Directory status") {
+                ForEach(JobSearchContactScope.allCases) { scope in
+                    filterButton(scope.title, selected: model.jobContactFilter.scope == scope) {
+                        updateFilter { $0.scope = scope }
+                    }
+                }
+            }
+
             Section("Usefulness") {
                 filterButton("All contacts", selected: model.jobContactFilter.usefulness == nil) {
                     updateFilter { $0.usefulness = nil }
@@ -202,7 +233,7 @@ struct ContactsDirectoryView: View {
                     : "line.3.horizontal.decrease.circle"
             )
         }
-        .help("Filter contacts by usefulness, response, relationship level, or follow-up")
+        .help("Filter contacts by directory status, usefulness, response, relationship level, or follow-up")
     }
 
     private var groupedContacts: [ContactDirectoryGroup] {
@@ -225,7 +256,7 @@ struct ContactsDirectoryView: View {
 
     private var contactCountText: String {
         let visible = model.visibleJobSearchContacts.count
-        let total = model.jobSearchContactCount
+        let total = model.jobSearchContactCount(for: model.jobContactFilter.scope)
         let noun = total == 1 ? "contact" : "contacts"
         return hasActiveFilter ? "\(visible) of \(total) \(noun)" : "\(total) \(noun)"
     }
@@ -240,6 +271,7 @@ struct ContactsDirectoryView: View {
             model.jobContactFilter.responseStatus != nil,
             model.jobContactFilter.relationshipLevel != nil,
             model.jobContactFilter.followUp != .all,
+            model.jobContactFilter.scope != .active,
         ].filter { $0 }.count
     }
 
@@ -314,18 +346,51 @@ private struct ContactDirectoryRow: View {
                 if contact.hasRoute {
                     HStack(spacing: 10) {
                         if !contact.email.isEmpty {
-                            Label(contact.email, systemImage: "envelope")
+                            ContactRouteControl(
+                                title: contact.email,
+                                systemImage: "envelope",
+                                destination: JobSearchContactRoutes.mailtoURL(for: contact.email),
+                                copyValue: contact.email,
+                                copyLabel: "Copy email address"
+                            )
                         }
                         if !contact.phone.isEmpty {
-                            Label(contact.phone, systemImage: "phone")
+                            ContactRouteControl(
+                                title: contact.phone,
+                                systemImage: "phone",
+                                destination: JobSearchContactRoutes.phoneURL(for: contact.phone),
+                                copyValue: contact.phone,
+                                copyLabel: "Copy phone number"
+                            )
                         }
-                        if !contact.sourceURLs.isEmpty {
-                            Label("Public source", systemImage: "link")
+                        if let sourceURL = contact.sourceURLs.first {
+                            ContactRouteControl(
+                                title: JobSearchContactRoutes.publicSourceTitle(for: sourceURL),
+                                systemImage: "link",
+                                destination: JobSearchContactRoutes.publicSourceURL(for: sourceURL),
+                                copyValue: sourceURL,
+                                copyLabel: "Copy public source URL"
+                            )
+                        }
+                        if contact.sourceURLs.count > 1 {
+                            Menu {
+                                ForEach(Array(contact.sourceURLs.dropFirst()), id: \.self) { sourceURL in
+                                    if let destination = JobSearchContactRoutes.publicSourceURL(for: sourceURL) {
+                                        Link("Open \(JobSearchContactRoutes.publicSourceTitle(for: sourceURL))", destination: destination)
+                                    }
+                                    Button("Copy \(JobSearchContactRoutes.publicSourceTitle(for: sourceURL))") {
+                                        ContactClipboard.copy(sourceURL)
+                                    }
+                                }
+                            } label: {
+                                Label("\(contact.sourceURLs.count - 1) more", systemImage: "ellipsis.circle")
+                            }
+                            .menuStyle(.borderlessButton)
+                            .help("Open or copy the remaining public sources")
                         }
                     }
                     .font(theme.uiFont(10))
                     .foregroundStyle(.secondary)
-                    .lineLimit(1)
                 }
 
                 if contact.opportunities.count > 1 {
@@ -346,7 +411,11 @@ private struct ContactDirectoryRow: View {
                 Text("Level \(contact.relationshipLevel) · \(contact.relationshipLevelTitle)")
                     .font(theme.uiFont(10))
                     .foregroundStyle(levelColor)
-                if let followUp = contact.nextFollowUpDate {
+                if let archivedAt = contact.archivedAt {
+                    Text("Archived \(archivedAt.formatted(date: .abbreviated, time: .omitted))")
+                        .font(theme.metadataFont(9))
+                        .foregroundStyle(.secondary)
+                } else if let followUp = contact.nextFollowUpDate {
                     Text("Follow up \(followUp.formatted(date: .abbreviated, time: .omitted))")
                         .font(theme.metadataFont(9))
                         .foregroundStyle(.secondary)
@@ -359,8 +428,6 @@ private struct ContactDirectoryRow: View {
             .frame(minWidth: 155, alignment: .trailing)
         }
         .padding(.vertical, 5)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel(accessibilityLabel)
     }
 
     private var usefulnessColor: Color {
@@ -379,9 +446,42 @@ private struct ContactDirectoryRow: View {
         }
     }
 
-    private var accessibilityLabel: String {
-        let name = contact.name.isEmpty ? "Public contact" : contact.name
-        return "\(name), \(contact.company), \(contact.responseStatus.title), level \(contact.relationshipLevel), \(contact.relationshipLevelTitle)"
+}
+
+private struct ContactRouteControl: View {
+    let title: String
+    let systemImage: String
+    let destination: URL?
+    let copyValue: String
+    let copyLabel: String
+
+    var body: some View {
+        HStack(spacing: 3) {
+            if let destination {
+                Link(destination: destination) {
+                    Label(title, systemImage: systemImage)
+                        .lineLimit(1)
+                }
+                .help("Open \(title)")
+            } else {
+                Label(title, systemImage: systemImage)
+                    .lineLimit(1)
+            }
+
+            Button { ContactClipboard.copy(copyValue) } label: {
+                Image(systemName: "doc.on.doc")
+            }
+            .buttonStyle(.borderless)
+            .help(copyLabel)
+            .accessibilityLabel(copyLabel)
+        }
+    }
+}
+
+private enum ContactClipboard {
+    static func copy(_ value: String) {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(value, forType: .string)
     }
 }
 

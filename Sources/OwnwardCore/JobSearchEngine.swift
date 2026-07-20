@@ -169,6 +169,23 @@ public enum JobSearchEngine {
         workspace.contacts.append(normalized)
     }
 
+    /// Archiving is a reversible directory-only action. It never changes the
+    /// source role contacts, so future research refreshes retain the user's
+    /// archive decision rather than recreating an active duplicate.
+    public static func setContactArchived(
+        _ contactID: JobSearchContactID,
+        archived: Bool,
+        in workspace: inout JobSearchWorkspace,
+        at date: Date = Date()
+    ) throws {
+        guard let index = workspace.contacts.firstIndex(where: { $0.id == contactID }) else {
+            throw DomainError.jobSearchContactNotFound
+        }
+        guard workspace.contacts[index].isArchived != archived else { return }
+        workspace.contacts[index].archivedAt = archived ? date : nil
+        workspace.contacts[index].updatedAt = date
+    }
+
     private static func validate(_ role: JobRole) throws {
         guard !role.employer.isEmpty, !role.role.isEmpty else { throw DomainError.invalidJobRole }
     }
@@ -626,6 +643,15 @@ public enum JobSearchContactOrganizer {
               (filter.responseStatus == nil || contact.responseStatus == filter.responseStatus),
               (filter.relationshipLevel == nil || contact.relationshipLevel == filter.relationshipLevel) else {
             return false
+        }
+
+        switch filter.scope {
+        case .active:
+            guard !contact.isArchived else { return false }
+        case .archived:
+            guard contact.isArchived else { return false }
+        case .all:
+            break
         }
 
         switch filter.followUp {

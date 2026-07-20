@@ -389,6 +389,7 @@ TOOLS: list[dict[str, Any]] = [
                 "response_status": {"type": "string", "enum": ["not_contacted", "no_response", "responded"]},
                 "relationship_level": {"type": "integer", "minimum": 0, "maximum": 5},
                 "follow_up": {"type": "string", "enum": ["all", "due", "scheduled", "none"]},
+                "scope": {"type": "string", "enum": ["active", "archived", "all"]},
                 "search": {"type": "string"},
                 "sort": {"type": "string", "enum": ["relationship_level", "recently_active", "name", "company", "follow_up"]},
             },
@@ -608,6 +609,7 @@ class MCPServer:
                     "response_status": arguments.get("response_status"),
                     "relationship_level": arguments.get("relationship_level"),
                     "follow_up": arguments.get("follow_up"),
+                    "scope": arguments.get("scope"),
                     "search": arguments.get("search"),
                     "sort": arguments.get("sort"),
                 }.items() if value is not None
